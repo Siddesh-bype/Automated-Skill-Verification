@@ -1,15 +1,32 @@
 """
 CertifyMe AI Code Verifier
-Analyzes code submissions using OpenAI GPT-4 to assign quality scores.
+Analyzes code submissions using OpenRouter (openai/gpt-oss-120b:free) to assign quality scores.
+Falls back to deterministic mock analysis when no API key is configured.
 """
 
 import os
 import json
+import hashlib
 import requests
-from openai import OpenAI
 
-# Initialize OpenAI client — reads OPENAI_API_KEY from environment
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# ── OpenRouter Configuration ──
+OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
+OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "openai/gpt-oss-120b:free")
+
+# Lazy client — only initialized when a valid API key exists
+_openrouter_client = None
+_api_key = os.getenv("OPENROUTER_API_KEY", "")
+
+def _get_openai_client():
+    """Returns an OpenAI-compatible client pointed at OpenRouter."""
+    global _openrouter_client
+    if _openrouter_client is None and _api_key and not _api_key.startswith("demo"):
+        from openai import OpenAI
+        _openrouter_client = OpenAI(
+            api_key=_api_key,
+            base_url=OPENROUTER_BASE_URL,
+        )
+    return _openrouter_client
 
 # Skill level thresholds
 SKILL_LEVELS = {
@@ -85,11 +102,59 @@ def fetch_github_repo_files(github_url: str) -> dict:
     return files_content
 
 
+def _generate_mock_analysis(github_url: str, claimed_skill: str, file_count: int) -> dict:
+    """Generate a deterministic mock analysis based on URL hash — used when no OpenAI key."""
+    h = int(hashlib.md5(github_url.encode()).hexdigest(), 16)
+
+    code_quality = 55 + (h % 35)
+    complexity = 45 + ((h >> 8) % 40)
+    best_practices = 50 + ((h >> 16) % 35)
+    originality = 40 + ((h >> 24) % 45)
+
+    overall = round(code_quality * 0.30 + complexity * 0.25 + best_practices * 0.25 + originality * 0.20)
+    skill_level = get_skill_level(overall)
+
+    strengths_pool = [
+        "Clean code structure and organization",
+        "Good use of modern language features",
+        "Proper error handling patterns",
+        "Well-organized project structure",
+        "Effective use of design patterns",
+        "Comprehensive README documentation",
+    ]
+    weaknesses_pool = [
+        "Could benefit from more unit tests",
+        "Some functions could be further decomposed",
+        "Consider adding type annotations",
+        "Documentation could be more detailed",
+        "Edge case handling could be improved",
+    ]
+
+    return {
+        "verified": overall >= 45,
+        "ai_score": overall,
+        "skill_level": skill_level,
+        "analysis": {
+            "code_quality": code_quality,
+            "complexity": complexity,
+            "best_practices": best_practices,
+            "originality": originality,
+            "strengths": [strengths_pool[h % len(strengths_pool)], strengths_pool[(h + 3) % len(strengths_pool)]],
+            "weaknesses": [weaknesses_pool[h % len(weaknesses_pool)], weaknesses_pool[(h + 2) % len(weaknesses_pool)]],
+        },
+        "recommendation": "ISSUE_CERTIFICATE" if overall >= 45 else "REJECT",
+        "evidence_summary": f"[Demo Mode] Analyzed {file_count} files for {claimed_skill}. "
+                           f"The codebase demonstrates {skill_level.lower()}-level proficiency "
+                           f"with an overall score of {overall}/100.",
+    }
+
+
 def verify_code(github_url: str, claimed_skill: str) -> dict:
     """
     Main verification function.
     Fetches code from GitHub, sends to GPT-4 for analysis,
     returns structured score and recommendation.
+    Falls back to deterministic mock analysis when OpenAI is unavailable.
     """
     try:
         files = fetch_github_repo_files(github_url)
@@ -112,6 +177,12 @@ def verify_code(github_url: str, claimed_skill: str) -> dict:
             "recommendation": "REJECT",
             "evidence_summary": "Repository contains no analyzable source files",
         }
+
+    # Check if OpenRouter client is available
+    client = _get_openai_client()
+    if client is None:
+        print(f"[DEMO MODE] No OPENROUTER_API_KEY — returning mock analysis for {github_url}")
+        return _generate_mock_analysis(github_url, claimed_skill, len(files))
 
     # Build code summary for GPT-4
     code_summary = ""
@@ -150,13 +221,17 @@ Respond ONLY with valid JSON, no other text."""
 
     try:
         response = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model=OPENROUTER_MODEL,
             messages=[
                 {"role": "system", "content": "You are a code quality analyzer. Respond only with valid JSON."},
                 {"role": "user", "content": analysis_prompt},
             ],
             temperature=0.3,
             max_tokens=800,
+            extra_headers={
+                "HTTP-Referer": "https://certifyme.app",
+                "X-Title": "CertifyMe AI Verification",
+            },
         )
 
         result_text = response.choices[0].message.content.strip()

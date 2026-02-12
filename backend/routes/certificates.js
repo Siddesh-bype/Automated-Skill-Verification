@@ -13,6 +13,98 @@ const algorandService = require('../services/algorand');
 // In-memory store for hackathon demo (replaces PostgreSQL)
 const certificateStore = new Map();
 
+// ── Seed demo certificates so the dashboard is never empty ──
+const seedDemoData = () => {
+    const demoRecords = [
+        {
+            id: uuidv4(),
+            student_name: 'Siddesh Bype',
+            skill: 'React Development',
+            skill_level: 'Advanced',
+            ai_score: 78,
+            github_url: 'https://github.com/Siddesh-bype/Automated-Skill-Verification',
+            description: 'Full-stack blockchain credential platform built with React + Algorand',
+            issuer: 'CertifyMe Platform',
+            evidence_hash: null,
+            evidence_url: null,
+            analysis: {
+                code_quality: 82,
+                complexity: 74,
+                best_practices: 80,
+                originality: 75,
+                strengths: ['Clean component architecture', 'Good use of TypeScript generics'],
+                weaknesses: ['Could add more unit tests', 'Some components too large'],
+            },
+            evidence_summary: 'The codebase demonstrates advanced React skills with TypeScript, custom hooks, and proper state management patterns.',
+            recommendation: 'ISSUE_CERTIFICATE',
+            verified: true,
+            blockchain_asset_id: null,
+            blockchain_tx_id: null,
+            issue_date: new Date(Date.now() - 86400000).toISOString(), // yesterday
+            status: 'VERIFIED',
+        },
+        {
+            id: uuidv4(),
+            student_name: 'Siddesh Bype',
+            skill: 'Python Backend',
+            skill_level: 'Intermediate',
+            ai_score: 65,
+            github_url: 'https://github.com/Siddesh-bype/Automated-Skill-Verification',
+            description: 'Flask AI verification micro-service for code analysis',
+            issuer: 'CertifyMe Platform',
+            evidence_hash: null,
+            evidence_url: null,
+            analysis: {
+                code_quality: 70,
+                complexity: 55,
+                best_practices: 68,
+                originality: 62,
+                strengths: ['Well-structured API endpoints', 'Good error handling with fallbacks'],
+                weaknesses: ['No database layer', 'Missing request validation'],
+            },
+            evidence_summary: 'Flask API service with OpenRouter LLM integration. Shows solid Python backend skills with proper REST design.',
+            recommendation: 'ISSUE_CERTIFICATE',
+            verified: true,
+            blockchain_asset_id: null,
+            blockchain_tx_id: null,
+            issue_date: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
+            status: 'VERIFIED',
+        },
+        {
+            id: uuidv4(),
+            student_name: 'Siddesh Bype',
+            skill: 'Blockchain Development',
+            skill_level: 'Advanced',
+            ai_score: 82,
+            github_url: 'https://github.com/Siddesh-bype/Automated-Skill-Verification',
+            description: 'ARC-4 smart contract with box storage for certificate management',
+            issuer: 'CertifyMe Platform',
+            evidence_hash: null,
+            evidence_url: null,
+            analysis: {
+                code_quality: 85,
+                complexity: 80,
+                best_practices: 78,
+                originality: 84,
+                strengths: ['ARC-4 compliance', 'Efficient box storage design', 'Proper access controls'],
+                weaknesses: ['Edge case testing could be stronger'],
+            },
+            evidence_summary: 'AlgoPy smart contract using ARC-4 with box storage, skill registry, and admin controls. Shows expert-level Algorand development.',
+            recommendation: 'ISSUE_CERTIFICATE',
+            verified: true,
+            blockchain_asset_id: 12345678,
+            blockchain_tx_id: 'DEMO-TX-ABC123XYZ',
+            issue_date: new Date(Date.now() - 259200000).toISOString(), // 3 days ago
+            status: 'MINTED',
+        },
+    ];
+
+    demoRecords.forEach(r => certificateStore.set(r.id, r));
+    console.log(`Seeded ${demoRecords.length} demo certificates`);
+};
+
+seedDemoData();
+
 /**
  * POST /api/certificates/submit-evidence
  * Student submits evidence for AI verification.
@@ -101,41 +193,16 @@ router.post('/record-mint', (req, res) => {
 });
 
 /**
- * GET /api/certificates/:id
- * Fetch certificate details by internal ID
- */
-router.get('/:id', (req, res) => {
-    const cert = certificateStore.get(req.params.id);
-    if (!cert) {
-        return res.status(404).json({ error: 'Certificate not found' });
-    }
-    res.json(cert);
-});
-
-/**
- * GET /api/certificates
- * List all certificates (for dashboard demo)
- */
-router.get('/', (req, res) => {
-    const { wallet, status } = req.query;
-    let certs = Array.from(certificateStore.values());
-
-    if (status) {
-        certs = certs.filter(c => c.status === status.toUpperCase());
-    }
-
-    // Sort by issue date descending
-    certs.sort((a, b) => new Date(b.issue_date) - new Date(a.issue_date));
-
-    res.json(certs);
-});
-
-/**
  * GET /api/certificates/verify/:assetId
- * Public verification endpoint — employer scans QR code
+ * PUBLIC verification endpoint — employer scans QR code or enters asset ID.
+ * ⚠️ MUST be defined BEFORE /:id to avoid route shadowing!
  */
 router.get('/verify/:assetId', async (req, res) => {
     const assetId = parseInt(req.params.assetId);
+
+    if (isNaN(assetId)) {
+        return res.status(400).json({ verified: false, error: 'Invalid asset ID' });
+    }
 
     // Find certificate by blockchain asset ID
     const cert = Array.from(certificateStore.values()).find(
@@ -171,6 +238,66 @@ router.get('/verify/:assetId', async (req, res) => {
             on_chain: false,
         },
     });
+});
+
+/**
+ * GET /api/certificates/stats
+ * Aggregate statistics for the landing page
+ */
+router.get('/stats', (req, res) => {
+    const certs = Array.from(certificateStore.values());
+    const verified = certs.filter(c => c.status !== 'REJECTED');
+    const minted = certs.filter(c => c.status === 'MINTED');
+    const avgScore = verified.length > 0
+        ? Math.round(verified.reduce((sum, c) => sum + c.ai_score, 0) / verified.length)
+        : 0;
+
+    const skillCounts = {};
+    verified.forEach(c => {
+        skillCounts[c.skill] = (skillCounts[c.skill] || 0) + 1;
+    });
+
+    res.json({
+        total_certificates: certs.length,
+        total_verified: verified.length,
+        total_minted: minted.length,
+        total_rejected: certs.length - verified.length,
+        average_score: avgScore,
+        top_skills: Object.entries(skillCounts)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 5)
+            .map(([skill, count]) => ({ skill, count })),
+    });
+});
+
+/**
+ * GET /api/certificates
+ * List all certificates (for dashboard demo)
+ */
+router.get('/', (req, res) => {
+    const { wallet, status } = req.query;
+    let certs = Array.from(certificateStore.values());
+
+    if (status) {
+        certs = certs.filter(c => c.status === status.toUpperCase());
+    }
+
+    // Sort by issue date descending
+    certs.sort((a, b) => new Date(b.issue_date) - new Date(a.issue_date));
+
+    res.json(certs);
+});
+
+/**
+ * GET /api/certificates/:id
+ * Fetch certificate details by internal ID
+ */
+router.get('/:id', (req, res) => {
+    const cert = certificateStore.get(req.params.id);
+    if (!cert) {
+        return res.status(404).json({ error: 'Certificate not found' });
+    }
+    res.json(cert);
 });
 
 module.exports = router;

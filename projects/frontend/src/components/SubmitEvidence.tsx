@@ -16,6 +16,7 @@ const SubmitEvidence = ({ openModal, closeModal, onCertificateMinted }: SubmitEv
     const { enqueueSnackbar } = useSnackbar()
 
     const [skills, setSkills] = useState<SkillOption[]>([])
+    const [skillsLoading, setSkillsLoading] = useState(true)
     const [githubUrl, setGithubUrl] = useState('')
     const [claimedSkill, setClaimedSkill] = useState('')
     const [studentName, setStudentName] = useState('')
@@ -26,7 +27,10 @@ const SubmitEvidence = ({ openModal, closeModal, onCertificateMinted }: SubmitEv
     const [loading, setLoading] = useState(false)
 
     useEffect(() => {
-        fetchSkills().then(setSkills)
+        setSkillsLoading(true)
+        fetchSkills()
+            .then(setSkills)
+            .finally(() => setSkillsLoading(false))
     }, [])
 
     useEffect(() => {
@@ -37,7 +41,7 @@ const SubmitEvidence = ({ openModal, closeModal, onCertificateMinted }: SubmitEv
 
     const handleSubmit = async () => {
         if (!githubUrl) { enqueueSnackbar('Please enter a GitHub URL', { variant: 'warning' }); return }
-        if (!activeAddress) { enqueueSnackbar('Connect your wallet first', { variant: 'warning' }); return }
+        if (!githubUrl.includes('github.com')) { enqueueSnackbar('Please enter a valid GitHub URL', { variant: 'warning' }); return }
 
         setLoading(true)
         setStep('verifying')
@@ -117,9 +121,17 @@ const SubmitEvidence = ({ openModal, closeModal, onCertificateMinted }: SubmitEv
         return 'text-error'
     }
 
+    const getLevelEmoji = (level: string) => {
+        if (level?.includes('Expert')) return '🏆'
+        if (level?.includes('Advanced')) return '⭐'
+        if (level?.includes('Intermediate')) return '📘'
+        if (level?.includes('Beginner')) return '🌱'
+        return '❌'
+    }
+
     return (
         <dialog id="submit_evidence_modal" className={`modal ${openModal ? 'modal-open' : ''}`}>
-            <form method="dialog" className="modal-box max-w-2xl">
+            <div className="modal-box max-w-2xl">
                 <h3 className="font-bold text-2xl mb-4">
                     {step === 'form' && '📝 Submit Evidence for Verification'}
                     {step === 'verifying' && '🔍 AI Verification in Progress...'}
@@ -130,32 +142,52 @@ const SubmitEvidence = ({ openModal, closeModal, onCertificateMinted }: SubmitEv
                 {/* Form Step */}
                 {step === 'form' && (
                     <div className="flex flex-col gap-3">
-                        <input
-                            className="input input-bordered"
-                            placeholder="Your Name"
-                            value={studentName}
-                            onChange={(e) => setStudentName(e.target.value)}
-                        />
-                        <select className="select select-bordered w-full" value={claimedSkill} onChange={(e) => setClaimedSkill(e.target.value)}>
-                            {skills.map((s) => (
-                                <option key={s.name} value={s.name}>
-                                    {s.name} ({s.category})
-                                </option>
-                            ))}
-                        </select>
-                        <input
-                            className="input input-bordered"
-                            placeholder="GitHub Repository URL (e.g., https://github.com/user/repo)"
-                            value={githubUrl}
-                            onChange={(e) => setGithubUrl(e.target.value)}
-                        />
-                        <textarea
-                            className="textarea textarea-bordered"
-                            placeholder="Brief project description (optional)"
-                            value={description}
-                            onChange={(e) => setDescription(e.target.value)}
-                            rows={3}
-                        />
+                        <div className="form-control">
+                            <label className="label"><span className="label-text font-medium">Your Name</span></label>
+                            <input
+                                className="input input-bordered"
+                                placeholder="e.g., Siddesh Bype"
+                                value={studentName}
+                                onChange={(e) => setStudentName(e.target.value)}
+                            />
+                        </div>
+                        <div className="form-control">
+                            <label className="label"><span className="label-text font-medium">Skill to Verify</span></label>
+                            {skillsLoading ? (
+                                <div className="flex items-center gap-2 p-3 bg-base-200 rounded-lg">
+                                    <span className="loading loading-spinner loading-xs"></span>
+                                    <span className="text-sm opacity-60">Loading skills...</span>
+                                </div>
+                            ) : (
+                                <select className="select select-bordered w-full" value={claimedSkill} onChange={(e) => setClaimedSkill(e.target.value)}>
+                                    {skills.map((s) => (
+                                        <option key={s.name} value={s.name}>
+                                            {s.name} ({s.category}) — Min score: {s.min_score}
+                                        </option>
+                                    ))}
+                                </select>
+                            )}
+                        </div>
+                        <div className="form-control">
+                            <label className="label"><span className="label-text font-medium">GitHub Repository URL</span></label>
+                            <input
+                                className="input input-bordered"
+                                placeholder="https://github.com/username/project"
+                                value={githubUrl}
+                                onChange={(e) => setGithubUrl(e.target.value)}
+                            />
+                            <label className="label"><span className="label-text-alt opacity-50">Must be a public GitHub repository</span></label>
+                        </div>
+                        <div className="form-control">
+                            <label className="label"><span className="label-text font-medium">Project Description <span className="opacity-50">(optional)</span></span></label>
+                            <textarea
+                                className="textarea textarea-bordered"
+                                placeholder="Briefly describe what this project demonstrates..."
+                                value={description}
+                                onChange={(e) => setDescription(e.target.value)}
+                                rows={3}
+                            />
+                        </div>
                     </div>
                 )}
 
@@ -163,22 +195,28 @@ const SubmitEvidence = ({ openModal, closeModal, onCertificateMinted }: SubmitEv
                 {step === 'verifying' && (
                     <div className="flex flex-col items-center gap-4 py-8">
                         <span className="loading loading-spinner loading-lg text-primary"></span>
-                        <p className="text-lg">Analyzing code with AI...</p>
-                        <p className="text-sm opacity-60">This may take 15-30 seconds</p>
+                        <p className="text-lg font-medium">Analyzing code with AI...</p>
+                        <p className="text-sm opacity-60">Fetching repo files and running 4-dimensional analysis</p>
                         <div className="flex gap-2 flex-wrap justify-center mt-2">
                             <span className="badge badge-outline animate-pulse">Code Quality</span>
-                            <span className="badge badge-outline animate-pulse">Complexity</span>
-                            <span className="badge badge-outline animate-pulse">Best Practices</span>
-                            <span className="badge badge-outline animate-pulse">Originality</span>
+                            <span className="badge badge-outline animate-pulse" style={{ animationDelay: '0.1s' }}>Complexity</span>
+                            <span className="badge badge-outline animate-pulse" style={{ animationDelay: '0.2s' }}>Best Practices</span>
+                            <span className="badge badge-outline animate-pulse" style={{ animationDelay: '0.3s' }}>Originality</span>
                         </div>
+                        <div className="mt-4 w-full max-w-xs">
+                            <progress className="progress progress-primary w-full" />
+                        </div>
+                        <p className="text-xs opacity-40">This may take 15-30 seconds depending on repository size</p>
                     </div>
                 )}
 
                 {/* Result Step */}
                 {step === 'result' && result && (
                     <div className="flex flex-col gap-4">
+                        {/* Score Summary */}
                         <div className="stats shadow w-full">
                             <div className="stat">
+                                <div className="stat-figure text-3xl">{getLevelEmoji(result.skill_level)}</div>
                                 <div className="stat-title">AI Score</div>
                                 <div className={`stat-value ${getScoreColor(result.ai_score)}`}>{result.ai_score}/100</div>
                                 <div className="stat-desc">{result.skill_level}</div>
@@ -186,47 +224,80 @@ const SubmitEvidence = ({ openModal, closeModal, onCertificateMinted }: SubmitEv
                             <div className="stat">
                                 <div className="stat-title">Skill</div>
                                 <div className="stat-value text-lg">{result.skill}</div>
-                                <div className="stat-desc">{result.recommendation}</div>
+                                <div className="stat-desc">{result.recommendation === 'ISSUE_CERTIFICATE' ? '✅ Eligible for certification' : '❌ Does not meet threshold'}</div>
                             </div>
                         </div>
 
-                        {/* Analysis Breakdown */}
-                        <div className="grid grid-cols-2 gap-2">
-                            <div className="bg-base-200 rounded-lg p-3">
-                                <div className="text-xs opacity-60">Code Quality</div>
-                                <progress className="progress progress-primary w-full" value={result.analysis.code_quality} max="100" />
-                                <div className="text-sm font-bold">{result.analysis.code_quality}/100</div>
-                            </div>
-                            <div className="bg-base-200 rounded-lg p-3">
-                                <div className="text-xs opacity-60">Complexity</div>
-                                <progress className="progress progress-secondary w-full" value={result.analysis.complexity} max="100" />
-                                <div className="text-sm font-bold">{result.analysis.complexity}/100</div>
-                            </div>
-                            <div className="bg-base-200 rounded-lg p-3">
-                                <div className="text-xs opacity-60">Best Practices</div>
-                                <progress className="progress progress-accent w-full" value={result.analysis.best_practices} max="100" />
-                                <div className="text-sm font-bold">{result.analysis.best_practices}/100</div>
-                            </div>
-                            <div className="bg-base-200 rounded-lg p-3">
-                                <div className="text-xs opacity-60">Originality</div>
-                                <progress className="progress progress-info w-full" value={result.analysis.originality} max="100" />
-                                <div className="text-sm font-bold">{result.analysis.originality}/100</div>
+                        {/* 4D Analysis Breakdown */}
+                        <div className="bg-base-200 rounded-xl p-4">
+                            <h4 className="font-semibold mb-3">Analysis Breakdown</h4>
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <div className="flex justify-between text-xs mb-1">
+                                        <span className="opacity-60">Code Quality</span>
+                                        <span className="font-bold">{result.analysis.code_quality}/100</span>
+                                    </div>
+                                    <progress className="progress progress-primary w-full" value={result.analysis.code_quality} max="100" />
+                                </div>
+                                <div>
+                                    <div className="flex justify-between text-xs mb-1">
+                                        <span className="opacity-60">Complexity</span>
+                                        <span className="font-bold">{result.analysis.complexity}/100</span>
+                                    </div>
+                                    <progress className="progress progress-secondary w-full" value={result.analysis.complexity} max="100" />
+                                </div>
+                                <div>
+                                    <div className="flex justify-between text-xs mb-1">
+                                        <span className="opacity-60">Best Practices</span>
+                                        <span className="font-bold">{result.analysis.best_practices}/100</span>
+                                    </div>
+                                    <progress className="progress progress-accent w-full" value={result.analysis.best_practices} max="100" />
+                                </div>
+                                <div>
+                                    <div className="flex justify-between text-xs mb-1">
+                                        <span className="opacity-60">Originality</span>
+                                        <span className="font-bold">{result.analysis.originality}/100</span>
+                                    </div>
+                                    <progress className="progress progress-info w-full" value={result.analysis.originality} max="100" />
+                                </div>
                             </div>
                         </div>
 
-                        <p className="text-sm opacity-80">{result.evidence_summary}</p>
+                        {/* Evidence Summary */}
+                        <div className="bg-base-200 rounded-xl p-4">
+                            <h4 className="font-semibold mb-2">Evidence Summary</h4>
+                            <p className="text-sm opacity-80">{result.evidence_summary}</p>
+                        </div>
 
                         {/* Strengths & Weaknesses */}
-                        {result.analysis.strengths && result.analysis.strengths.length > 0 && (
-                            <div className="text-sm">
-                                <span className="font-semibold text-success">Strengths:</span>{' '}
-                                {result.analysis.strengths.join(' • ')}
-                            </div>
-                        )}
-                        {result.analysis.weaknesses && result.analysis.weaknesses.length > 0 && (
-                            <div className="text-sm">
-                                <span className="font-semibold text-warning">Improvements:</span>{' '}
-                                {result.analysis.weaknesses.join(' • ')}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {result.analysis.strengths && result.analysis.strengths.length > 0 && (
+                                <div className="bg-success/10 border border-success/20 rounded-xl p-4">
+                                    <h4 className="font-semibold text-success text-sm mb-2">💪 Strengths</h4>
+                                    <ul className="text-sm space-y-1">
+                                        {result.analysis.strengths.map((s, i) => (
+                                            <li key={i} className="flex gap-2"><span className="text-success">•</span> {s}</li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+                            {result.analysis.weaknesses && result.analysis.weaknesses.length > 0 && (
+                                <div className="bg-warning/10 border border-warning/20 rounded-xl p-4">
+                                    <h4 className="font-semibold text-warning text-sm mb-2">📝 Areas to Improve</h4>
+                                    <ul className="text-sm space-y-1">
+                                        {result.analysis.weaknesses.map((w, i) => (
+                                            <li key={i} className="flex gap-2"><span className="text-warning">•</span> {w}</li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Wallet Connection Prompt for Minting */}
+                        {result.verified && !activeAddress && (
+                            <div className="alert alert-info">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="stroke-current shrink-0 w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                <span>Connect your Algorand wallet to mint this certificate as an NFT on the blockchain.</span>
                             </div>
                         )}
                     </div>
@@ -236,8 +307,12 @@ const SubmitEvidence = ({ openModal, closeModal, onCertificateMinted }: SubmitEv
                 {step === 'minting' && (
                     <div className="flex flex-col items-center gap-4 py-8">
                         <span className="loading loading-spinner loading-lg text-success"></span>
-                        <p className="text-lg">Minting certificate on Algorand...</p>
-                        <p className="text-sm opacity-60">Confirm the transaction in your wallet</p>
+                        <p className="text-lg font-medium">Minting certificate on Algorand...</p>
+                        <div className="text-sm opacity-60 text-center space-y-1">
+                            <p>📌 Uploading metadata to IPFS</p>
+                            <p>⛓️ Creating ARC-19 NFT on TestNet</p>
+                            <p>✍️ Confirm the transaction in your wallet</p>
+                        </div>
                     </div>
                 )}
 
@@ -245,31 +320,52 @@ const SubmitEvidence = ({ openModal, closeModal, onCertificateMinted }: SubmitEv
                 <div className="modal-action">
                     {step === 'form' && (
                         <>
-                            <button className={`btn btn-primary ${loading ? 'loading' : ''}`} onClick={handleSubmit} disabled={loading || !activeAddress}>
+                            <button
+                                type="button"
+                                className={`btn btn-primary ${loading ? 'loading' : ''}`}
+                                onClick={handleSubmit}
+                                disabled={loading || !githubUrl}
+                            >
                                 🔍 Verify with AI
                             </button>
-                            <button className="btn" onClick={resetAndClose} disabled={loading}>
+                            <button type="button" className="btn" onClick={resetAndClose} disabled={loading}>
                                 Cancel
                             </button>
                         </>
                     )}
                     {step === 'result' && result?.verified && (
                         <>
-                            <button className="btn btn-success" onClick={handleMint} disabled={loading}>
+                            <button
+                                type="button"
+                                className="btn btn-success"
+                                onClick={handleMint}
+                                disabled={loading || !activeAddress}
+                            >
                                 ⛓️ Mint Certificate NFT
                             </button>
-                            <button className="btn" onClick={resetAndClose}>
+                            <button type="button" className="btn" onClick={resetAndClose}>
                                 Close
                             </button>
                         </>
                     )}
                     {step === 'result' && !result?.verified && (
-                        <button className="btn" onClick={resetAndClose}>
-                            Close
-                        </button>
+                        <>
+                            <button
+                                type="button"
+                                className="btn btn-outline"
+                                onClick={() => { setStep('form'); setResult(null) }}
+                            >
+                                🔄 Try Another Repo
+                            </button>
+                            <button type="button" className="btn" onClick={resetAndClose}>
+                                Close
+                            </button>
+                        </>
                     )}
                 </div>
-            </form>
+            </div>
+            {/* Click outside to close */}
+            <div className="modal-backdrop" onClick={resetAndClose}></div>
         </dialog>
     )
 }

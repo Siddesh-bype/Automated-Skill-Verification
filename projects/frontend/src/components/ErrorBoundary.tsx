@@ -16,23 +16,42 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
   }
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    // Update state so the next render will show the fallback UI.
     return { hasError: true, error: error }
   }
 
   render(): ReactNode {
     if (this.state.hasError) {
-      // You can render any custom fallback UI
+      const isAlgodError = this.state.error?.message.includes('Attempt to get default algod configuration')
+
       return (
-        <div className="hero min-h-screen bg-teal-400">
-          <div className="hero-content text-center rounded-lg p-6 max-w-md bg-white mx-auto">
-            <div className="max-w-md">
-              <h1 className="text-4xl">Error occured</h1>
-              <p className="py-6">
-                {this.state.error?.message.includes('Attempt to get default algod configuration')
-                  ? 'Please make sure to set up your environment variables correctly. Create a .env file based on .env.template and fill in the required values. This controls the network and credentials for connections with Algod and Indexer.'
-                  : this.state.error?.message}
-              </p>
+        <div className="min-h-screen bg-surface-950 flex items-center justify-center p-6">
+          <div className="card bg-base-200 shadow-xl max-w-lg w-full">
+            <div className="card-body text-center">
+              <div className="text-5xl mb-4">⚠️</div>
+              <h1 className="text-2xl font-bold text-surface-50 mb-2">Something went wrong</h1>
+              {isAlgodError ? (
+                <div className="text-left">
+                  <p className="text-surface-400 mb-3">
+                    Could not connect to the Algorand node. Please check your environment setup:
+                  </p>
+                  <div className="bg-base-300 rounded-lg p-4 text-sm font-mono text-surface-300">
+                    <p>1. Create a <span className="text-brand-400">.env</span> file from <span className="text-brand-400">.env.template</span></p>
+                    <p>2. Set <span className="text-brand-400">VITE_ALGOD_SERVER</span></p>
+                    <p>3. Set <span className="text-brand-400">VITE_ALGOD_PORT</span></p>
+                    <p>4. Set <span className="text-brand-400">VITE_ALGOD_NETWORK</span></p>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-surface-400">{this.state.error?.message}</p>
+              )}
+              <div className="card-actions justify-center mt-6">
+                <button
+                  className="btn btn-primary"
+                  onClick={() => window.location.reload()}
+                >
+                  🔄 Reload Page
+                </button>
+              </div>
             </div>
           </div>
         </div>
