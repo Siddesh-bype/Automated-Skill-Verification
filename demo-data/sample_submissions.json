@@ -1,0 +1,95 @@
+[
+    {
+        "id": "demo-cert-001",
+        "student_name": "Priya Sharma",
+        "skill": "React Development",
+        "skill_level": "Intermediate",
+        "ai_score": 87,
+        "github_url": "https://github.com/priya/react-todo",
+        "description": "Built a full-featured React todo app with hooks, context API, and Firebase backend during XYZ Hackathon",
+        "issuer": "XYZ Hackathon",
+        "evidence_hash": "QmXYZ123example",
+        "analysis": {
+            "code_quality": 85,
+            "complexity": 88,
+            "best_practices": 90,
+            "originality": 85,
+            "strengths": [
+                "Clean component architecture",
+                "Proper use of React hooks",
+                "Good error handling"
+            ],
+            "weaknesses": [
+                "Could add more unit tests",
+                "Some components are slightly large"
+            ]
+        },
+        "evidence_summary": "Well-structured React application demonstrating intermediate-level skills with proper patterns",
+        "recommendation": "ISSUE_CERTIFICATE",
+        "verified": true,
+        "status": "MINTED",
+        "issue_date": "2026-02-12T10:30:00Z"
+    },
+    {
+        "id": "demo-cert-002",
+        "student_name": "Rahul Kumar",
+        "skill": "Python Backend",
+        "skill_level": "Advanced",
+        "ai_score": 92,
+        "github_url": "https://github.com/rahul/flask-api",
+        "description": "Built a RESTful API with Flask, SQLAlchemy, JWT auth, and comprehensive test suite",
+        "issuer": "TechCamp India",
+        "evidence_hash": "QmABC456example",
+        "analysis": {
+            "code_quality": 94,
+            "complexity": 90,
+            "best_practices": 93,
+            "originality": 89,
+            "strengths": [
+                "Excellent API design",
+                "Comprehensive test coverage",
+                "Clean architecture with blueprints"
+            ],
+            "weaknesses": [
+                "Could add API rate limiting",
+                "Documentation could be more detailed"
+            ]
+        },
+        "evidence_summary": "Professional-grade Flask API with advanced patterns including JWT auth and proper testing",
+        "recommendation": "ISSUE_CERTIFICATE",
+        "verified": true,
+        "status": "MINTED",
+        "issue_date": "2026-02-11T14:00:00Z"
+    },
+    {
+        "id": "demo-cert-003",
+        "student_name": "Arjun Patel",
+        "skill": "Machine Learning",
+        "skill_level": "FAIL - Do not certify",
+        "ai_score": 23,
+        "github_url": "https://github.com/arjun/ml-project",
+        "description": "Machine learning project for classification",
+        "issuer": "CertifyMe Platform",
+        "evidence_hash": null,
+        "analysis": {
+            "code_quality": 20,
+            "complexity": 15,
+            "best_practices": 25,
+            "originality": 10,
+            "strengths": [
+                "Basic Python syntax is correct"
+            ],
+            "weaknesses": [
+                "Code directly copied from tutorial",
+                "No original implementation",
+                "Missing documentation",
+                "No error handling"
+            ]
+        },
+        "evidence_summary": "Code appears to be directly copied from a popular ML tutorial with minimal modifications. Plagiarism detected.",
+        "recommendation": "REJECT",
+        "verified": false,
+        "status": "REJECTED",
+        "issue_date": "2026-02-12T16:00:00Z"
+    }
+]

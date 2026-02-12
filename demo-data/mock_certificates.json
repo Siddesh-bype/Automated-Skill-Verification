@@ -1,0 +1,48 @@
+[
+    {
+        "cert_id": "demo-cert-001",
+        "asset_name": "CM-React Development",
+        "unit_name": "CERTME",
+        "recipient_name": "Priya Sharma",
+        "skill": "React Development",
+        "skill_level": "Intermediate",
+        "ai_score": 87,
+        "issuer": "XYZ Hackathon",
+        "issue_date": "2026-02-12T10:30:00Z",
+        "metadata": {
+            "standard": "arc19",
+            "name": "CertifyMe: React Development - Intermediate",
+            "description": "AI-Verified React Development certificate at Intermediate level. Score: 87/100",
+            "properties": {
+                "skill": "React Development",
+                "skill_level": "Intermediate",
+                "ai_score": 87,
+                "issuer": "XYZ Hackathon",
+                "platform": "CertifyMe"
+            }
+        }
+    },
+    {
+        "cert_id": "demo-cert-002",
+        "asset_name": "CM-Python Backend",
+        "unit_name": "CERTME",
+        "recipient_name": "Rahul Kumar",
+        "skill": "Python Backend",
+        "skill_level": "Advanced",
+        "ai_score": 92,
+        "issuer": "TechCamp India",
+        "issue_date": "2026-02-11T14:00:00Z",
+        "metadata": {
+            "standard": "arc19",
+            "name": "CertifyMe: Python Backend - Advanced",
+            "description": "AI-Verified Python Backend certificate at Advanced level. Score: 92/100",
+            "properties": {
+                "skill": "Python Backend",
+                "skill_level": "Advanced",
+                "ai_score": 92,
+                "issuer": "TechCamp India",
+                "platform": "CertifyMe"
+            }
+        }
+    }
+]
