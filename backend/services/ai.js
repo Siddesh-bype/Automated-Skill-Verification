@@ -84,7 +84,7 @@ async function verifyCode(githubUrl, claimedSkill) {
             github_url: githubUrl,
             claimed_skill: claimedSkill,
             submission_type: 'code',
-        }, { timeout: 60000 }); // 60s timeout for GPT-4 analysis
+        }, { timeout: 120000 }); // 120s timeout for GPT-4 analysis
 
         return response.data;
     } catch (error) {
