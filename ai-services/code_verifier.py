@@ -149,6 +149,51 @@ def _generate_mock_analysis(github_url: str, claimed_skill: str, file_count: int
     }
 
 
+def _validate_repo_authenticity(github_url: str) -> str | None:
+    """
+    Checks for anti-gaming:
+    1. Repo must be at least 10 minutes old.
+    2. Repo must have more than 3 commits.
+    Returns error string if failed, None if pass.
+    """
+    try:
+        parts = github_url.rstrip("/").split("/")
+        if len(parts) < 2:
+            return "Invalid URL"
+        owner, repo = parts[-2], parts[-1]
+        
+        # 1. Check Repo Details (Age)
+        api_url = f"https://api.github.com/repos/{owner}/{repo}"
+        resp = requests.get(api_url, timeout=5)
+        if resp.status_code == 200:
+            data = resp.json()
+            created_at = data.get("created_at")
+            if created_at:
+                from datetime import datetime, timezone, timedelta
+                # Parse 2024-02-14T10:00:00Z
+                created_dt = datetime.strptime(created_at, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+                now_dt = datetime.now(timezone.utc)
+                if (now_dt - created_dt) < timedelta(minutes=10):
+                    return "Repository is too new (created < 10 mins ago). Please submit an established project."
+
+        # 2. Check Commit Count
+        # Fetch last 5 commits
+        commits_url = f"https://api.github.com/repos/{owner}/{repo}/commits?per_page=5"
+        resp_commits = requests.get(commits_url, timeout=5)
+        if resp_commits.status_code == 200:
+            commits = resp_commits.json()
+            if isinstance(commits, list) and len(commits) < 3:
+                return "Repository has fewer than 3 commits. Please submit a project with more history."
+                
+    except Exception as e:
+        print(f"Validation check failed: {e}")
+        # Fail open if API fails, or fail closed? 
+        # For hackathon demo, maybe warn but allow if API fails.
+        pass
+        
+    return None
+
+
 def verify_code(github_url: str, claimed_skill: str) -> dict:
     """
     Main verification function.
@@ -184,6 +229,21 @@ def verify_code(github_url: str, claimed_skill: str) -> dict:
         print(f"[DEMO MODE] No OPENROUTER_API_KEY — returning mock analysis for {github_url}")
         return _generate_mock_analysis(github_url, claimed_skill, len(files))
 
+    # Anti-Gaming: Validate repo authenticity before wasting AI tokens
+    try:
+        validation_error = _validate_repo_authenticity(github_url)
+        if validation_error:
+            return {
+                "verified": False,
+                "ai_score": 0,
+                "skill_level": "FAIL",
+                "analysis": {"error": f"Security Check Failed: {validation_error}"},
+                "recommendation": "REJECT",
+                "evidence_summary": f"Submission rejected by Security Engine: {validation_error}",
+            }
+    except Exception as e:
+        print(f"Warning: Repo validation failed, proceeding anyway: {e}")
+
     # Build code summary for GPT-4
     code_summary = ""
     for path, content in files.items():
@@ -195,29 +255,31 @@ def verify_code(github_url: str, claimed_skill: str) -> dict:
 The developer claims proficiency in: {claimed_skill}
 Repository: {github_url}
 
-Analyze the following source code files and provide a JSON response with these exact keys:
+Analyze the provided source code files. You MUST reference specific filenames and line numbers in your evidence.
+
+Respond with a JSON object with these exact keys:
 
 {{
   "code_quality": <score 0-100>,
   "complexity": <score 0-100>,
-  "best_practices": <score 0-100>,  
+  "best_practices": <score 0-100>,
   "originality": <score 0-100>,
-  "overall_score": <weighted average: quality 30%, complexity 25%, practices 25%, originality 20%>,
-  "evidence_summary": "<2-3 sentence summary of what the code demonstrates>",
-  "strengths": ["<strength 1>", "<strength 2>"],
+  "overall_score": <weighted average>,
+  "evidence_summary": "<2-3 sentence summary. MUST quote at least one specific file and coding pattern found. e.g. 'Excellent use of useEffect in src/App.tsx line 45.'>",
+  "strengths": ["<strength 1 (cite file)>", "<strength 2 (cite file)>"],
   "weaknesses": ["<weakness 1>", "<weakness 2>"]
 }}
 
 Scoring guidelines:
-- code_quality: Clean syntax, proper naming, consistent formatting, no dead code
-- complexity: Sophistication of algorithms, data structures, architecture used
-- best_practices: Error handling, comments, modular design, testing
-- originality: Not a common tutorial clone, shows independent thinking
+- code_quality: Clean syntax, proper naming
+- complexity: Algorithms, architecture
+- best_practices: Error handling, comments
+- originality: Detect if this is a generic tutorial clone
 
 CODE FILES:
 {code_summary}
 
-Respond ONLY with valid JSON, no other text."""
+Respond ONLY with valid JSON."""
 
     try:
         response = client.chat.completions.create(

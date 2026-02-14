@@ -1,4 +1,4 @@
-<div align="center">
+[<div align="center">
 
 # 🛡️ CertifyMe — Automated Skill Verification on Algorand
 
@@ -601,6 +601,7 @@ This project is licensed under the MIT License — see the [LICENSE](LICENSE) fi
 
 _CertifyMe — Where AI meets Blockchain to verify real skills._
 
-[🌐 Live Demo](http://localhost:5173) · [📂 GitHub](https://github.com/Siddesh-bype/Automated-Skill-Verification)
+[📂 GitHub](https://github.com/Siddesh-bype/Automated-Skill-Verification)
 
 </div>
+
