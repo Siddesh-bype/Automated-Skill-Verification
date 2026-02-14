@@ -47,6 +47,7 @@ export async function submitEvidence(data: {
     student_name?: string
     description?: string
     issuer?: string
+    chain_name?: string
 }): Promise<VerificationResult> {
     const res = await fetch(`${BACKEND_URL}/api/certificates/submit-evidence`, {
         method: 'POST',
@@ -139,6 +140,134 @@ export async function fetchSkills(): Promise<SkillOption[]> {
             { name: 'UI/UX Design', category: 'Design', min_score: 45 },
             { name: 'Data Structures & Algorithms', category: 'CS Fundamentals', min_score: 50 },
             { name: 'Mobile Development', category: 'Mobile', min_score: 45 },
+        ]
+    }
+}
+
+/**
+ * Batch verify multiple certificates at once
+ */
+export async function batchVerify(assetIds: number[]): Promise<{
+    results: Array<{
+        asset_id: number
+        valid: boolean
+        error?: string
+        certificate?: {
+            cert_id: string
+            student_name: string
+            skill: string
+            ai_score: number
+            status: string
+            chain_name: string
+            issue_date: string
+            revoked: boolean
+        }
+        on_chain_verified: boolean
+    }>
+    summary: { total: number; valid: number; invalid: number; revoked: number }
+}> {
+    const res = await fetch(`${BACKEND_URL}/api/verification/batch`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ asset_ids: assetIds }),
+    })
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: 'Unknown error' }))
+        throw new Error(err.error || `Batch verification failed (${res.status})`)
+    }
+    return res.json()
+}
+
+/**
+ * Fetch portfolio for a wallet address
+ */
+export async function fetchPortfolio(wallet: string): Promise<any> {
+    const res = await fetch(`${BACKEND_URL}/api/portfolio/${encodeURIComponent(wallet)}`)
+    if (!res.ok) return null
+    return res.json()
+}
+
+/**
+ * Create or update a portfolio
+ */
+export async function updatePortfolio(data: {
+    wallet_address: string
+    display_name?: string
+    bio?: string
+    github_url?: string
+    linkedin_url?: string
+}): Promise<any> {
+    const res = await fetch(`${BACKEND_URL}/api/portfolio`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+    })
+    if (!res.ok) throw new Error('Portfolio update failed')
+    return res.json()
+}
+
+/**
+ * Create a share link for a certificate
+ */
+export async function createShareLink(certId: string, expiresIn: string = '24h', sharedVia: string = 'link'): Promise<{
+    share_token: string
+    expires_at: string
+    share_url: string
+    certificate_summary: any
+}> {
+    const res = await fetch(`${BACKEND_URL}/api/share`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cert_id: certId, shared_via: sharedVia, expires_in: expiresIn }),
+    })
+    if (!res.ok) throw new Error('Share link creation failed')
+    return res.json()
+}
+
+/**
+ * Fetch revocation feed
+ */
+export async function fetchRevocations(since?: string): Promise<{
+    events: Array<{
+        id: number
+        cert_id: string
+        asset_id: number | null
+        skill: string
+        student_name: string
+        revoked_by: string
+        reason: string
+        chain_name: string
+        created_at: string
+    }>
+    total: number
+}> {
+    const params = since ? `?since=${encodeURIComponent(since)}` : ''
+    const res = await fetch(`${BACKEND_URL}/api/certificates/revocations${params}`)
+    if (!res.ok) return { events: [], total: 0 }
+    return res.json()
+}
+
+/**
+ * Fetch supported chains
+ */
+export async function fetchChains(): Promise<Array<{
+    id: string
+    name: string
+    symbol: string
+    color: string
+    icon: string
+    isReal: boolean
+}>> {
+    try {
+        const res = await fetch(`${BACKEND_URL}/api/verification/chains`)
+        if (!res.ok) throw new Error('Failed')
+        const data = await res.json()
+        return data.chains
+    } catch {
+        return [
+            { id: 'algorand', name: 'Algorand', symbol: 'ALGO', color: '#00ADB5', icon: '🟢', isReal: true },
+            { id: 'ethereum', name: 'Ethereum', symbol: 'ETH', color: '#627EEA', icon: '🔷', isReal: false },
+            { id: 'polygon', name: 'Polygon', symbol: 'MATIC', color: '#8247E5', icon: '🟣', isReal: false },
         ]
     }
 }

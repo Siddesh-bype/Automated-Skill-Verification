@@ -14,10 +14,11 @@ const oracleService = require('../services/oracle');
 const plagiarismService = require('../services/plagiarism');
 const Submission = require('../db/models/Submission');
 const db = require('../db/connection');
+const multichainService = require('../services/multichain');
 
-// ── Seed demo certificates on first run (only if DB is empty) ──
+// ── Seed demo certificates on first run (only if in-memory DB is empty) ──
 const seedDemoData = () => {
-    const count = db.prepare('SELECT COUNT(*) as c FROM submissions').get().c;
+    const count = Submission.findAll().length;
     if (count > 0) {
         console.log(`Database has ${count} existing records, skipping seed`);
         return;
@@ -109,13 +110,15 @@ seedDemoData();
  */
 router.post('/submit-evidence', async (req, res) => {
     try {
-        const { github_url, claimed_skill, student_name, description, issuer } = req.body;
+        const { github_url, claimed_skill, student_name, description, issuer, chain_name } = req.body;
+        const selectedChain = chain_name || 'algorand';
 
         if (!github_url || !claimed_skill) {
             return res.status(400).json({ error: 'github_url and claimed_skill are required' });
         }
 
         // Step 1: Create initial submission in database
+        const certId = uuidv4();
         const submission = Submission.create({
             student_name: student_name || 'Anonymous',
             repo_url: github_url,
@@ -123,8 +126,13 @@ router.post('/submit-evidence', async (req, res) => {
             description: description || '',
             issuer: issuer || 'CertifyMe Platform',
             status: 'analyzing',
-            cert_id: uuidv4(),
+            cert_id: certId,
         });
+
+        // Store chain selection
+        try {
+            db.prepare('UPDATE submissions SET chain_name = ? WHERE cert_id = ?').run(selectedChain, certId);
+        } catch (e) { /* column may not exist yet */ }
 
         console.log(`📝 Submission ${submission.id} created, analyzing...`);
 
@@ -459,6 +467,24 @@ router.post('/revoke', (req, res) => {
 
     const revoked = Submission.revoke(submission._db_id, reason, admin_wallet || 'admin');
 
+    // Auto-log to revocation events feed
+    try {
+        db.prepare(`
+            INSERT INTO revocation_events (cert_id, asset_id, skill, student_name, revoked_by, reason, chain_name)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        `).run(
+            submission.id || cert_id,
+            submission.asset_id || null,
+            submission.skill,
+            submission.student_name,
+            admin_wallet || 'admin',
+            reason,
+            submission.chain_name || 'algorand'
+        );
+    } catch (e) {
+        console.warn('Revocation event log failed:', e.message);
+    }
+
     logAudit('revoke_certificate', {
         actor_wallet: admin_wallet || 'admin',
         entity_type: 'submission',
@@ -469,23 +495,45 @@ router.post('/revoke', (req, res) => {
     res.json(revoked);
 });
 
+/**
+ * GET /api/certificates/revocations
+ * Paginated revocation feed with optional ?since= filter
+ */
+router.get('/revocations', (req, res) => {
+    try {
+        const { since, limit } = req.query;
+        const maxLimit = Math.min(parseInt(limit) || 50, 100);
+
+        let query = 'SELECT * FROM revocation_events';
+        const params = [];
+
+        if (since) {
+            query += ' WHERE created_at > ?';
+            params.push(since);
+        }
+
+        query += ' ORDER BY created_at DESC LIMIT ?';
+        params.push(maxLimit);
+
+        const events = db.prepare(query).all(...params);
+        const total = db.prepare('SELECT COUNT(*) as c FROM revocation_events').get().c;
+
+        res.json({
+            events,
+            total,
+            returned: events.length,
+        });
+    } catch (error) {
+        console.error('Revocation feed error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // ── Helpers ──
 
 function logAudit(action, data) {
-    try {
-        db.prepare(`
-            INSERT INTO audit_log (actor_wallet, action, entity_type, entity_id, details)
-            VALUES (?, ?, ?, ?, ?)
-        `).run(
-            data.actor_wallet || 'system',
-            action,
-            data.entity_type || null,
-            data.entity_id || null,
-            data.details ? JSON.stringify(data.details) : null
-        );
-    } catch (err) {
-        console.warn('Audit log failed:', err.message);
-    }
+    // Audit logging disabled in in-memory mode
+    // console.log(`[AUDIT] ${action}:`, data);
 }
 
 module.exports = router;

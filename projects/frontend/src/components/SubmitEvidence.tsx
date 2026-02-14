@@ -1,6 +1,6 @@
 import { useWallet } from '@txnlab/use-wallet-react'
 import { useEffect, useState } from 'react'
-import { submitEvidence, fetchSkills, type VerificationResult, type SkillOption } from '../services/verification'
+import { submitEvidence, fetchSkills, fetchChains, type VerificationResult, type SkillOption } from '../services/verification'
 import { mintCertificateNFT } from '../services/nft'
 import { recordMint } from '../services/verification'
 import { useSnackbar } from 'notistack'
@@ -21,6 +21,8 @@ const SubmitEvidence = ({ openModal, closeModal, onCertificateMinted }: SubmitEv
     const [claimedSkill, setClaimedSkill] = useState('')
     const [studentName, setStudentName] = useState('')
     const [description, setDescription] = useState('')
+    const [selectedChain, setSelectedChain] = useState('algorand')
+    const [chains, setChains] = useState<Array<{ id: string; name: string; icon: string; isReal: boolean }>>([])
 
     const [step, setStep] = useState<'form' | 'verifying' | 'result' | 'minting'>('form')
     const [result, setResult] = useState<VerificationResult | null>(null)
@@ -31,6 +33,7 @@ const SubmitEvidence = ({ openModal, closeModal, onCertificateMinted }: SubmitEv
         fetchSkills()
             .then(setSkills)
             .finally(() => setSkillsLoading(false))
+        fetchChains().then(setChains)
     }, [])
 
     useEffect(() => {
@@ -52,6 +55,7 @@ const SubmitEvidence = ({ openModal, closeModal, onCertificateMinted }: SubmitEv
                 claimed_skill: claimedSkill,
                 student_name: studentName || 'Anonymous',
                 description,
+                chain_name: selectedChain,
             })
             setResult(res)
             setStep('result')
@@ -188,6 +192,28 @@ const SubmitEvidence = ({ openModal, closeModal, onCertificateMinted }: SubmitEv
                                 rows={3}
                             />
                         </div>
+                        {/* Chain Selection */}
+                        {chains.length > 0 && (
+                            <div className="form-control">
+                                <label className="label"><span className="label-text font-medium">Target Blockchain</span></label>
+                                <select
+                                    className="select select-bordered w-full"
+                                    value={selectedChain}
+                                    onChange={(e) => setSelectedChain(e.target.value)}
+                                >
+                                    {chains.map((c) => (
+                                        <option key={c.id} value={c.id}>
+                                            {c.icon} {c.name} {!c.isReal ? '(Simulated)' : ''}
+                                        </option>
+                                    ))}
+                                </select>
+                                {selectedChain !== 'algorand' && (
+                                    <label className="label">
+                                        <span className="label-text-alt text-warning">⚠️ Simulated chain — metadata stored but no real on-chain minting</span>
+                                    </label>
+                                )}
+                            </div>
+                        )}
                     </div>
                 )}
 

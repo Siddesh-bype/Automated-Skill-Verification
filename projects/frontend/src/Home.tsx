@@ -6,6 +6,7 @@ import SubmitEvidence from './components/SubmitEvidence'
 import StudentDashboard from './components/StudentDashboard'
 import VerifyCredential from './components/VerifyCredential'
 import EmployerView from './components/EmployerView'
+import PortfolioPage from './components/PortfolioPage'
 
 /* ── Inline SVG Icons (professional, minimal line-art) ── */
 const IconShield = () => (
@@ -100,6 +101,7 @@ const Home: React.FC = () => {
   const [dashboardModal, setDashboardModal] = useState(false)
   const [verifyModal, setVerifyModal] = useState(false)
   const [employerModal, setEmployerModal] = useState(false)
+  const [portfolioModal, setPortfolioModal] = useState(false)
   const [verifyAssetId, setVerifyAssetId] = useState<number | null>(null)
   const [refreshTrigger, setRefreshTrigger] = useState(0)
   const { activeAddress } = useWallet()
@@ -135,6 +137,7 @@ const Home: React.FC = () => {
             <span className="nav-link" onClick={() => setSubmitModal(true)}>Submit Evidence</span>
             <span className="nav-link" onClick={() => setVerifyModal(true)}>Verify</span>
             <span className="nav-link" onClick={() => setEmployerModal(true)}>Employers</span>
+            {activeAddress && <span className="nav-link" onClick={() => setPortfolioModal(true)}>Portfolio</span>}
           </div>
 
           {/* Connect Wallet */}
@@ -315,6 +318,69 @@ const Home: React.FC = () => {
       {/* ── Divider ── */}
       <div className="border-t border-surface-800/60" />
 
+      {/* ── New Features Showcase ── */}
+      <section className="max-w-7xl mx-auto px-6 py-24">
+        <div className="text-center mb-16">
+          <p className="section-heading">What's New</p>
+          <h2 className="section-title">Enterprise-grade features</h2>
+        </div>
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[
+            {
+              icon: '🔗',
+              title: 'Multi-Chain Support',
+              desc: 'Certificates can target Algorand, Ethereum, or Polygon. Chain badges show which blockchain backs each credential.',
+              badge: 'NEW',
+            },
+            {
+              icon: '💼',
+              title: 'Portfolio Builder',
+              desc: 'Create a shareable profile showcasing all your verified certificates. Share your portfolio link with employers.',
+              badge: 'NEW',
+            },
+            {
+              icon: '📊',
+              title: 'Batch Verification',
+              desc: 'Employers can verify multiple candidates at once. Upload asset IDs and get instant verification results.',
+              badge: 'NEW',
+            },
+            {
+              icon: '🚨',
+              title: 'Revocation Feed',
+              desc: 'Real-time alerts when certificates are revoked. Auto-refreshing feed keeps employers informed.',
+              badge: 'NEW',
+            },
+            {
+              icon: '📤',
+              title: 'Certificate Sharing',
+              desc: 'Share certificates via WhatsApp, Email, or secure links with configurable expiry timeouts.',
+              badge: 'NEW',
+            },
+            {
+              icon: '⛓️',
+              title: 'Algorand Integration',
+              desc: 'Full ARC-19 NFT minting on Algorand TestNet. Immutable, verifiable proof of your skills.',
+              badge: 'CORE',
+            },
+          ].map((item) => (
+            <div key={item.title} className="card-workspace group">
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-3xl">{item.icon}</span>
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${item.badge === 'NEW'
+                    ? 'bg-brand-500/20 text-brand-400'
+                    : 'bg-surface-700 text-surface-400'
+                  }`}>
+                  {item.badge}
+                </span>
+              </div>
+              <h3 className="text-base font-semibold text-surface-100 mb-2">{item.title}</h3>
+              <p className="text-sm text-surface-400 leading-relaxed">{item.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* ── Employer CTA ── */}
       <section className="max-w-7xl mx-auto px-6 py-24">
         <div className="card-workspace p-10 md:p-14 flex flex-col md:flex-row items-center justify-between gap-8 border-brand-500/20 bg-brand-500/[0.03]">
@@ -373,6 +439,20 @@ const Home: React.FC = () => {
       />
       <VerifyCredential openModal={verifyModal} closeModal={() => setVerifyModal(false)} initialAssetId={verifyAssetId} />
       <EmployerView openModal={employerModal} closeModal={() => setEmployerModal(false)} />
+
+      {/* Portfolio Modal */}
+      {portfolioModal && activeAddress && (
+        <dialog className="modal modal-open">
+          <div className="modal-box max-w-3xl">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-bold text-2xl">📋 My Portfolio</h3>
+              <button className="btn btn-sm btn-ghost" onClick={() => setPortfolioModal(false)}>✕</button>
+            </div>
+            <PortfolioPage walletAddress={activeAddress} />
+          </div>
+          <div className="modal-backdrop" onClick={() => setPortfolioModal(false)} />
+        </dialog>
+      )}
     </div>
   )
 }

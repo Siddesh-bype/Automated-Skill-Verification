@@ -19,6 +19,8 @@ const certificatesRouter = require('./routes/certificates');
 const verificationRouter = require('./routes/verification');
 const skillsRouter = require('./routes/skills');
 const campusRouter = require('./routes/campus');
+const portfolioRouter = require('./routes/portfolio');
+const sharingRouter = require('./routes/sharing');
 
 // ── Services (initialize singletons on import) ──
 const algorandService = require('./services/algorand');
@@ -67,6 +69,11 @@ app.get('/health', async (req, res) => {
             oracle_signing: true,
             campus_mode: true,
             blockchain_verification: true,
+            multi_chain: true,
+            portfolio_builder: true,
+            batch_verification: true,
+            revocation_feed: true,
+            certificate_sharing: true,
             ipfs_storage: !!process.env.PINATA_JWT,
         },
     });
@@ -77,6 +84,8 @@ app.use('/api/certificates', certificatesRouter);
 app.use('/api/verification', verificationRouter);
 app.use('/api/skills', skillsRouter);
 app.use('/api/campus', campusRouter);
+app.use('/api/portfolio', portfolioRouter);
+app.use('/api/share', sharingRouter);
 
 // ── 404 handler ──
 app.use((req, res) => {
@@ -94,10 +103,19 @@ app.use((req, res) => {
             'GET  /api/certificates/:id',
             'POST /api/verification/verify-code',
             'POST /api/verification/verify',
+            'POST /api/verification/batch',
+            'GET  /api/verification/chains',
             'GET  /api/verification/contract-status',
             'GET  /api/verification/tx/:txId',
             'GET  /api/skills',
             'POST /api/skills',
+            'GET  /api/portfolio/:wallet',
+            'POST /api/portfolio',
+            'GET  /api/portfolio/public/:shareToken',
+            'POST /api/share',
+            'GET  /api/share/:token',
+            'GET  /api/share/:token/verify',
+            'GET  /api/certificates/revocations',
             'POST /api/campus/institutions',
             'GET  /api/campus/institutions',
             'POST /api/campus/cohorts',

@@ -1,5 +1,5 @@
 /**
- * Campus Mode Routes
+ * Campus Mode Routes — SQLite-backed
  * Institutional batch operations for universities and coding bootcamps.
  * Features: institution registration, cohort management, batch minting, encrypted student data.
  */

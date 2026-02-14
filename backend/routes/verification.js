@@ -122,5 +122,83 @@ router.get('/tx/:txId', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
+/**
+ * POST /api/verification/batch
+ * Batch verify multiple certificates at once (employers)
+ * Body: { asset_ids: [1, 2, 3] }
+ */
+router.post('/batch', async (req, res) => {
+    try {
+        const { asset_ids } = req.body;
+
+        if (!asset_ids || !Array.isArray(asset_ids) || asset_ids.length === 0) {
+            return res.status(400).json({ error: 'asset_ids array is required' });
+        }
+
+        if (asset_ids.length > 50) {
+            return res.status(400).json({ error: 'Maximum 50 certificates per batch' });
+        }
+
+        const results = await Promise.all(
+            asset_ids.map(async (id) => {
+                const assetId = parseInt(id);
+                if (isNaN(assetId)) {
+                    return { asset_id: id, valid: false, error: 'Invalid asset ID' };
+                }
+
+                const cert = Submission.findByAssetId(assetId);
+                if (!cert) {
+                    return { asset_id: assetId, valid: false, error: 'Certificate not found' };
+                }
+
+                // Attempt on-chain verification
+                let onChain = false;
+                try {
+                    const assetInfo = await algorandService.getAssetInfo(assetId);
+                    onChain = !!assetInfo;
+                } catch { /* skip */ }
+
+                return {
+                    asset_id: assetId,
+                    valid: cert.status === 'MINTED' || cert.status === 'VERIFIED',
+                    certificate: {
+                        cert_id: cert.id,
+                        student_name: cert.student_name,
+                        skill: cert.skill,
+                        ai_score: cert.ai_score,
+                        status: cert.status,
+                        chain_name: cert.chain_name || 'algorand',
+                        issue_date: cert.issue_date,
+                        revoked: cert.status === 'REVOKED',
+                    },
+                    on_chain_verified: onChain,
+                };
+            })
+        );
+
+        const summary = {
+            total: results.length,
+            valid: results.filter(r => r.valid).length,
+            invalid: results.filter(r => !r.valid).length,
+            revoked: results.filter(r => r.certificate?.revoked).length,
+        };
+
+        res.json({ results, summary });
+    } catch (error) {
+        console.error('Batch verification error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/**
+ * GET /api/verification/chains
+ * Get supported blockchain chains
+ */
+router.get('/chains', (req, res) => {
+    const multichainService = require('../services/multichain');
+    res.json({
+        chains: multichainService.getSupportedChains(),
+    });
+});
 
 module.exports = router;

@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import type { VerificationResult } from '../services/verification'
+import ShareCertificate from './ShareCertificate'
 
 interface CertificateCardProps {
     certificate: VerificationResult
@@ -6,6 +8,14 @@ interface CertificateCardProps {
 }
 
 const CertificateCard = ({ certificate, onVerify }: CertificateCardProps) => {
+    const [showShare, setShowShare] = useState(false)
+    const chainName = (certificate as any).chain_name || 'algorand'
+    const CHAIN_ICONS: Record<string, { icon: string; color: string; name: string }> = {
+        algorand: { icon: '🟢', color: '#00ADB5', name: 'Algorand' },
+        ethereum: { icon: '🔷', color: '#627EEA', name: 'Ethereum' },
+        polygon: { icon: '🟣', color: '#8247E5', name: 'Polygon' },
+    }
+    const chain = CHAIN_ICONS[chainName] || CHAIN_ICONS.algorand
     const getScoreBadgeClass = (score: number) => {
         if (score >= 75) return 'badge-success'
         if (score >= 45) return 'badge-warning'
@@ -25,7 +35,8 @@ const CertificateCard = ({ certificate, onVerify }: CertificateCardProps) => {
         }
     }
 
-    const getLevelIcon = (level: string) => {
+    const getLevelIcon = (level: string | null | undefined) => {
+        if (!level) return '📝'
         if (level.includes('Expert')) return '🏆'
         if (level.includes('Advanced')) return '⭐'
         if (level.includes('Intermediate')) return '📘'
@@ -77,6 +88,14 @@ const CertificateCard = ({ certificate, onVerify }: CertificateCardProps) => {
                         <span className="opacity-60">Status:</span>
                         <div>{getStatusBadge(certificate.status)}</div>
                     </div>
+                    <div>
+                        <span className="opacity-60">Chain:</span>
+                        <div>
+                            <span className="badge badge-ghost gap-1 text-xs" style={{ borderColor: chain.color + '40', color: chain.color }}>
+                                {chain.icon} {chain.name}
+                            </span>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Analysis mini bars */}
@@ -125,8 +144,8 @@ const CertificateCard = ({ certificate, onVerify }: CertificateCardProps) => {
                     )}
                     {certificate.blockchain_asset_id && (
                         <>
-                            <button className="btn btn-xs btn-outline" onClick={copyVerifyLink}>
-                                🔗 Share
+                            <button className="btn btn-xs btn-outline" onClick={() => setShowShare(true)}>
+                                📤 Share
                             </button>
                             <button className="btn btn-xs btn-primary" onClick={() => onVerify?.(certificate.blockchain_asset_id!)}>
                                 ✅ Verify
@@ -135,6 +154,17 @@ const CertificateCard = ({ certificate, onVerify }: CertificateCardProps) => {
                     )}
                 </div>
             </div>
+
+            {showShare && (
+                <ShareCertificate
+                    certId={certificate.id}
+                    skill={certificate.skill}
+                    studentName={certificate.student_name}
+                    aiScore={certificate.ai_score}
+                    chainName={chainName}
+                    onClose={() => setShowShare(false)}
+                />
+            )}
         </div>
     )
 }

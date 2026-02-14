@@ -1,5 +1,5 @@
 /**
- * Skills Routes — v2.0
+ * Skills Routes — v2.0 (SQLite-backed)
  * Returns available skills from the database.
  * Falls back to defaults if DB or AI service is unavailable.
  */
@@ -15,7 +15,6 @@ const aiService = require('../services/ai');
  */
 router.get('/', async (req, res) => {
     try {
-        // Try database first
         const skills = db.prepare(
             'SELECT skill_name as name, category, min_score, description FROM skills WHERE is_active = 1 ORDER BY category, skill_name'
         ).all();

@@ -6,33 +6,14 @@
  */
 
 const crypto = require('crypto');
-const db = require('../db/connection');
 
 class PlagiarismService {
     constructor() {
         this.similarityThreshold = 0.30; // 30% = suspicious
         this.ngramSize = 4; // 4-gram for code comparison
+        this.fingerprints = []; // In-memory storage for fingerprints
 
-        // Create fingerprints table if not exists
-        db.exec(`
-            CREATE TABLE IF NOT EXISTS code_fingerprints (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                submission_id INTEGER,
-                repo_url TEXT NOT NULL,
-                fingerprint TEXT NOT NULL,
-                ngram_hashes TEXT,
-                file_count INTEGER DEFAULT 0,
-                total_lines INTEGER DEFAULT 0,
-                created_at TEXT DEFAULT (datetime('now'))
-            )
-        `);
-
-        db.exec(`
-            CREATE INDEX IF NOT EXISTS idx_fingerprints_repo ON code_fingerprints(repo_url);
-            CREATE INDEX IF NOT EXISTS idx_fingerprints_hash ON code_fingerprints(fingerprint);
-        `);
-
-        console.log('🔍 Plagiarism detection service initialized');
+        console.log('🔍 Plagiarism detection service initialized (IN-MEMORY MODE)');
     }
 
     /**
@@ -64,9 +45,7 @@ class PlagiarismService {
             );
 
             // 4. Check against existing fingerprints
-            const existingFingerprints = db.prepare(
-                'SELECT * FROM code_fingerprints ORDER BY created_at DESC LIMIT 100'
-            ).all();
+            const existingFingerprints = this.fingerprints.slice(-100); // Last 100 entries
 
             let maxSimilarity = 0;
             const matches = [];
@@ -111,16 +90,14 @@ class PlagiarismService {
             }
 
             // 5. Store fingerprint for future comparisons
-            db.prepare(`
-                INSERT INTO code_fingerprints (repo_url, fingerprint, ngram_hashes, file_count, total_lines)
-                VALUES (?, ?, ?, ?, ?)
-            `).run(
-                repoUrl,
+            this.fingerprints.push({
+                repo_url: repoUrl,
                 fingerprint,
-                JSON.stringify(ngramHashes.slice(0, 500)), // Limit stored hashes
-                codeContents.length,
-                combinedCode.split('\n').length,
-            );
+                ngram_hashes: JSON.stringify(ngramHashes.slice(0, 500)),
+                file_count: codeContents.length,
+                total_lines: combinedCode.split('\n').length,
+                created_at: new Date().toISOString(),
+            });
 
             return {
                 similarity_score: Math.round(maxSimilarity * 100) / 100,

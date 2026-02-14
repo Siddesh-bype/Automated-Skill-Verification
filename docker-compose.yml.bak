@@ -1,0 +1,47 @@
+version: "3.8"
+
+services:
+  # ── Backend API (Express.js + SQLite) ──
+  backend:
+    build: ./backend
+    ports:
+      - "3001:3001"
+    env_file:
+      - ./backend/.env
+    environment:
+      - AI_SERVICE_URL=http://ai-service:5001
+    volumes:
+      - backend-data:/app/data
+    depends_on:
+      - ai-service
+    restart: unless-stopped
+
+  # ── AI Verification Service (Flask + Python 3.12) ──
+  ai-service:
+    build: ./ai-services
+    ports:
+      - "5001:5001"
+    env_file:
+      - ./ai-services/.env
+    environment:
+      - FLASK_DEBUG=false
+      - AI_SERVICE_PORT=5001
+    restart: unless-stopped
+
+  # ── Frontend Dev Server (React + Vite) ──
+  frontend:
+    build: ./projects/frontend
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_BACKEND_URL=http://localhost:3001
+      - VITE_AI_SERVICE_URL=http://localhost:5001
+      - VITE_ALGOD_SERVER=https://testnet-api.algonode.cloud
+      - VITE_INDEXER_SERVER=https://testnet-idx.algonode.cloud
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  backend-data:
+    driver: local
