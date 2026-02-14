@@ -302,7 +302,13 @@ We recommend reviewing these files to understand the full depth of our implement
 - In-memory certificate store (suitable for hackathon; production would use a database)
 - Public verification endpoint for employers (`/verify/:assetId`)
 
-### 5. Frontend Flow
+### 5. Multi-Chain & Portfolio
+📄 **`backend/services/multichain.js`** — Chain metadata for Algorand (real), Ethereum & Polygon (simulated)
+📄 **`backend/routes/portfolio.js`** — Student portfolio CRUD with public shareable profiles
+📄 **`backend/routes/sharing.js`** — Tokenized certificate share links with configurable expiry (1h–30d)
+📄 **`backend/db/schema.js`** — Full SQLite schema with 8 tables, indexes, safe migrations, and seed data
+
+### 6. Frontend Flow
 📄 **`projects/frontend/src/components/SubmitEvidence.tsx`**
 - Multi-step UX: Form → AI Verifying (animated) → Result (4D scores) → Mint NFT
 - Integrated wallet interaction with transaction signing
@@ -345,7 +351,29 @@ docker-compose up --build
 
 The SQLite database is persisted via a Docker volume (`backend-data`), so data survives container restarts.
 
-### 3. Run Locally (Alternative)
+### 3. Run in Hybrid Mode (Recommended for Connectivity)
+
+If you encounter GitHub API timeouts in Docker, use this mode:
+
+**Terminal 1 (Backend & DB in Docker):**
+```bash
+docker-compose up --build backend
+```
+
+**Terminal 2 (AI Service Locally):**
+```bash
+cd ai-services
+pip install -r requirements.txt
+python app.py
+```
+
+**Terminal 3 (Frontend Locally):**
+```bash
+cd projects/frontend
+npm run dev
+```
+
+### 4. Run Locally (Alternative)
 
 <details>
 <summary>Click to expand manual setup</summary>
@@ -379,7 +407,7 @@ python app.py
 
 </details>
 
-### 4. Open the App
+### 5. Open the App
 
 Navigate to **http://localhost:5173/** in your browser.
 
