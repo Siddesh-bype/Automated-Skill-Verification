@@ -9,7 +9,7 @@ services:
     env_file:
       - ./backend/.env
     environment:
-      - AI_SERVICE_URL=http://ai-service:5001
+      - AI_SERVICE_URL=http://host.docker.internal:5001
     volumes:
       - backend-data:/app/data
     depends_on:

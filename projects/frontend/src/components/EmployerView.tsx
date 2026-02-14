@@ -135,24 +135,26 @@ const EmployerView = ({ openModal, closeModal }: EmployerViewProps) => {
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-4 gap-2 text-center text-xs">
-                                        <div>
-                                            <div className="font-bold">{certificate.analysis.code_quality}</div>
-                                            <div className="opacity-50">Quality</div>
+                                    {certificate.analysis && (
+                                        <div className="grid grid-cols-4 gap-2 text-center text-xs">
+                                            <div>
+                                                <div className="font-bold">{certificate.analysis.code_quality}</div>
+                                                <div className="opacity-50">Quality</div>
+                                            </div>
+                                            <div>
+                                                <div className="font-bold">{certificate.analysis.complexity}</div>
+                                                <div className="opacity-50">Complexity</div>
+                                            </div>
+                                            <div>
+                                                <div className="font-bold">{certificate.analysis.best_practices}</div>
+                                                <div className="opacity-50">Practices</div>
+                                            </div>
+                                            <div>
+                                                <div className="font-bold">{certificate.analysis.originality}</div>
+                                                <div className="opacity-50">Originality</div>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <div className="font-bold">{certificate.analysis.complexity}</div>
-                                            <div className="opacity-50">Complexity</div>
-                                        </div>
-                                        <div>
-                                            <div className="font-bold">{certificate.analysis.best_practices}</div>
-                                            <div className="opacity-50">Practices</div>
-                                        </div>
-                                        <div>
-                                            <div className="font-bold">{certificate.analysis.originality}</div>
-                                            <div className="opacity-50">Originality</div>
-                                        </div>
-                                    </div>
+                                    )}
                                 </div>
 
                                 {/* Evidence links */}

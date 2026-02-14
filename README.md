@@ -1,4 +1,4 @@
-[<div align="center">
+<div align="center">
 
 # 🛡️ CertifyMe — Automated Skill Verification on Algorand
 
@@ -8,6 +8,7 @@
 [![React](https://img.shields.io/badge/Frontend-React%2018-61DAFB?logo=react&logoColor=black)](https://react.dev/)
 [![Flask](https://img.shields.io/badge/AI%20Service-Flask-000000?logo=flask)](https://flask.palletsprojects.com/)
 [![OpenRouter](https://img.shields.io/badge/LLM-OpenRouter-6366F1)](https://openrouter.ai/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 <br/>
@@ -85,18 +86,26 @@ Traditional skill verification is **broken**:
 - 📊 **Detailed Feedback** — Strengths, weaknesses, and evidence summary from the AI
 - ⛓️ **Mint NFT Certificate** — One-click minting on Algorand TestNet via Pera/Defly wallet
 - 🎓 **Certificate Dashboard** — View all earned certificates with scores, statuses, and blockchain links
+- 🌐 **Multi-Chain Selection** — Choose between Algorand (real), Ethereum, or Polygon (simulated) when submitting
+- 📁 **Portfolio Builder** — Create a shareable profile showcasing all earned certificates
+- 📤 **Certificate Sharing** — Share via WhatsApp, Email, or time-limited tokenized links
 
 ### For Employers
 - 🔍 **Instant Verification** — Enter an Asset ID, get full certificate proof in seconds
-- 📂 **Code Evidence** — Direct link to the analyzed GitHub repository
+- � **Batch Verification** — Verify up to 50 certificates at once with summary stats
+- 🚨 **Revocation Feed** — Real-time alerts when certificates are revoked (auto-refresh)
+- �📂 **Code Evidence** — Direct link to the analyzed GitHub repository
 - ⛓️ **Blockchain Proof** — On-chain verification via Algorand Explorer
 - 📈 **AI Score Breakdown** — See exactly how the candidate scored across all dimensions
 
 ### Platform
-- 🌐 **Modern UI** — Glassmorphism design system with dark mode, Outfit typography, Framer Motion animations, and 3D-style floating effects
+- 🌐 **Modern UI** — Dark theme design system with custom color palette (#222831, #00ADB5)
 - 🔐 **Multi-Wallet Support** — Pera, Defly, Exodus, and Lute wallets supported
 - 🏗️ **ARC-19 Compliant** — NFT certificates follow the Algorand ARC-19 standard
 - 📌 **IPFS Metadata** — Certificate metadata is permanently stored on IPFS via Pinata
+- 🐳 **Docker Ready** — Full Docker Compose setup for one-command deployment
+- 🛡️ **Anti-Gaming** — Repo age check (>10 min) and commit count validation (>3 commits)
+- 💾 **SQLite Database** — Persistent storage with Docker volumes for all certificate data
 
 ---
 
@@ -172,14 +181,16 @@ Traditional skill verification is **broken**:
 | Layer | Technology | Purpose |
 |---|---|---|
 | **Frontend** | React 18 + TypeScript + Vite | SPA with hot-reload |
-| **Styling** | TailwindCSS + DaisyUI + Framer Motion | Glassmorphism theme, dark mode, animations |
-| **Animations** | Framer Motion + Lottie React | Scroll animations, floating 3D effects, micro-interactions |
+| **Styling** | TailwindCSS + DaisyUI | Dark theme, responsive components |
 | **Wallet** | `@txnlab/use-wallet-react` | Pera, Defly, Exodus, Lute support |
-| **Backend** | Express.js (Node.js) | REST API, certificate orchestration |
+| **Backend** | Express.js (Node.js) + SQLite | REST API, certificate orchestration, persistent DB |
+| **Database** | better-sqlite3 | Persistent storage with schema migrations |
 | **AI Engine** | Flask (Python) + OpenRouter | Code analysis via `openai/gpt-oss-120b:free` |
 | **Blockchain** | Algorand TestNet + AlgoPy | ARC-4 smart contract, ARC-19 NFTs |
+| **Multi-Chain** | Algorand (real) + Ethereum/Polygon (simulated) | Chain-agnostic certificate metadata |
 | **Storage** | IPFS via Pinata | Permanent certificate metadata |
 | **SDK** | `algosdk` + `@algorandfoundation/algokit-utils` | On-chain interactions |
+| **DevOps** | Docker + Docker Compose | Containerized deployment with persistent volumes |
 
 ---
 
@@ -225,24 +236,30 @@ CertifyMe/
 │
 ├── 📁 backend/                         # Express.js Backend API
 │   ├── server.js                       # Express server setup + middleware
+│   ├── Dockerfile                      # Docker build for backend
+│   ├── 📁 db/
+│   │   ├── connection.js               # SQLite database connection
+│   │   └── schema.js                   # ⭐ Full schema with migrations + seed data
 │   ├── 📁 routes/
-│   │   ├── certificates.js             # ⭐ /submit-evidence, /record-mint, /verify
-│   │   ├── verification.js             # AI service proxy
+│   │   ├── certificates.js             # ⭐ /submit-evidence, /record-mint, /verify, /revoke
+│   │   ├── verification.js             # AI proxy + /batch + /chains endpoints
+│   │   ├── portfolio.js                # Portfolio CRUD + public sharing
+│   │   ├── sharing.js                  # Tokenized share links with expiry
 │   │   └── skills.js                   # Skill registry endpoint
 │   ├── 📁 services/
 │   │   ├── ai.js                       # ⭐ AI service client (with mock fallback)
+│   │   ├── multichain.js               # Multi-chain config (Algorand, Ethereum, Polygon)
 │   │   ├── ipfs.js                     # Pinata IPFS integration
 │   │   └── algorand.js                 # On-chain verification helpers
 │   └── .env                            # Backend env vars
 │
 ├── 📁 ai-services/                     # Flask AI Microservice
 │   ├── app.py                          # Flask server (/verify-code, /skills)
-│   ├── code_verifier.py                # ⭐ GitHub fetcher + OpenRouter LLM analysis
+│   ├── code_verifier.py                # ⭐ GitHub fetcher + OpenRouter LLM + anti-gaming
+│   ├── Dockerfile                      # Docker build for AI service
 │   └── .env                            # OpenRouter API key
 │
-├── 📁 demo-data/                       # Sample data for testing
-│   ├── sample_submissions.json         # Test GitHub repos + expected outcomes
-│   └── mock_certificates.json          # Pre-generated certificate data
+├── docker-compose.yml                  # ⭐ Full stack Docker orchestration
 │
 └── README.md                           # ← You are here
 ```
@@ -281,7 +298,7 @@ We recommend reviewing these files to understand the full depth of our implement
 
 ### 4. Certificate Orchestration
 📄 **`backend/routes/certificates.js`**
-- Full lifecycle: submit → AI verify → IPFS upload → store → mint → verify
+- Full lifecycle: submit → AI verify → IPFS upload → store → mint → verify → revoke
 - In-memory certificate store (suitable for hackathon; production would use a database)
 - Public verification endpoint for employers (`/verify/:assetId`)
 
@@ -302,9 +319,8 @@ We recommend reviewing these files to understand the full depth of our implement
 
 ### Prerequisites
 
-- **Node.js** ≥ 18
-- **Python** ≥ 3.10
-- **npm** ≥ 9
+- **Docker** + **Docker Compose** (recommended) — OR:
+- **Node.js** ≥ 18, **Python** ≥ 3.10, **npm** ≥ 9
 - An [OpenRouter API key](https://openrouter.ai/keys) (free tier works)
 - An Algorand TestNet wallet (Pera Wallet recommended)
 
@@ -315,62 +331,55 @@ git clone https://github.com/Siddesh-bype/Automated-Skill-Verification.git
 cd Automated-Skill-Verification
 ```
 
-### 2. Setup Frontend
+### 2. Run with Docker (Recommended)
+
+```bash
+# Start all services in one command
+docker-compose up --build
+
+# Services:
+#   Frontend → http://localhost:5173
+#   Backend  → http://localhost:3001
+#   AI       → http://localhost:5001
+```
+
+The SQLite database is persisted via a Docker volume (`backend-data`), so data survives container restarts.
+
+### 3. Run Locally (Alternative)
+
+<details>
+<summary>Click to expand manual setup</summary>
+
+#### Setup Frontend
 
 ```bash
 cd projects/frontend
 npm install
-
-# Configure environment
 cp .env.template .env
-# Edit .env — defaults work for TestNet:
-# VITE_ALGOD_SERVER="https://testnet-api.algonode.cloud"
-# VITE_BACKEND_URL="http://localhost:3001"
+npm run dev
 ```
 
-### 3. Setup Backend
+#### Setup Backend
 
 ```bash
 cd backend
 npm install
-
-# Configure environment
 cp .env.example .env
-# Edit .env — set PINATA_JWT if you have one (optional)
-```
-
-### 4. Setup AI Service
-
-```bash
-cd ai-services
-pip install flask flask-cors python-dotenv openai requests
-
-# Configure environment
-cp .env.example .env
-# Edit .env — set your OpenRouter API key:
-# OPENROUTER_API_KEY=sk-or-v1-xxxxxxxxxxxxx
-# OPENROUTER_MODEL=openai/gpt-oss-120b:free
-```
-
-### 5. Run All Services
-
-Open **three terminals**:
-
-```bash
-# Terminal 1 — Frontend (port 5173)
-cd projects/frontend
-npm run dev
-
-# Terminal 2 — Backend (port 3001)
-cd backend
 npm start
+```
 
-# Terminal 3 — AI Service (port 5001)
+#### Setup AI Service
+
+```bash
 cd ai-services
+pip install -r requirements.txt
+cp .env.example .env
 python app.py
 ```
 
-### 6. Open the App
+</details>
+
+### 4. Open the App
 
 Navigate to **http://localhost:5173/** in your browser.
 
@@ -490,14 +499,24 @@ When no API key is configured, the system generates **deterministic mock analysi
 
 | Method | Endpoint | Description |
 |---|---|---|
-| `GET` | `/health` | Health check |
+| `GET` | `/health` | Health check with feature list |
 | `GET` | `/api/skills` | List available skills + criteria |
 | `POST` | `/api/certificates/submit-evidence` | Submit GitHub URL for AI verification |
 | `POST` | `/api/certificates/record-mint` | Record on-chain mint (asset_id, tx_id) |
 | `GET` | `/api/certificates` | List all certificates (dashboard) |
 | `GET` | `/api/certificates/:id` | Get certificate by ID |
 | `GET` | `/api/certificates/verify/:assetId` | Public verification by Asset ID |
+| `POST` | `/api/certificates/revoke/:certId` | Revoke a certificate (logs to feed) |
+| `GET` | `/api/certificates/revocations` | Get revocation event feed |
 | `POST` | `/api/verification/verify-code` | Proxy to AI service |
+| `POST` | `/api/verification/batch` | Batch verify up to 50 certificates |
+| `GET` | `/api/verification/chains` | List supported blockchains |
+| `GET` | `/api/portfolio/:wallet` | Get/create student portfolio |
+| `POST` | `/api/portfolio` | Create or update portfolio |
+| `GET` | `/api/portfolio/public/:shareToken` | Public portfolio view |
+| `POST` | `/api/share` | Create tokenized share link |
+| `GET` | `/api/share/:token` | Access shared certificate |
+| `GET` | `/api/share/:token/verify` | Verify shared certificate on-chain |
 
 ### AI Service (Flask — Port 5001)
 
@@ -515,7 +534,8 @@ curl -X POST http://localhost:3001/api/certificates/submit-evidence \
   -d '{
     "github_url": "https://github.com/facebook/react",
     "claimed_skill": "React Development",
-    "student_name": "Jane Doe"
+    "student_name": "Jane Doe",
+    "chain_name": "algorand"
   }'
 ```
 
@@ -527,6 +547,7 @@ curl -X POST http://localhost:3001/api/certificates/submit-evidence \
   "ai_score": 82,
   "skill_level": "Advanced",
   "skill": "React Development",
+  "chain_name": "algorand",
   "analysis": {
     "code_quality": 88,
     "complexity": 79,
@@ -547,23 +568,30 @@ curl -X POST http://localhost:3001/api/certificates/submit-evidence \
 
 | Feature | Status | Details |
 |---|---|---|
-| Landing Page UI | ✅ Complete | Glassmorphism dark theme, Outfit font, Framer Motion animations, floating 3D effects |
+| Landing Page UI | ✅ Complete | Dark theme with custom palette (#222831, #00ADB5) |
 | Wallet Connection | ✅ Complete | Pera, Defly, Exodus, Lute via `@txnlab/use-wallet-react` |
-| Submit Evidence Modal | ✅ Complete | Multi-step form with progress indicators |
+| Submit Evidence Modal | ✅ Complete | Multi-step form with chain selector |
 | AI Code Analysis | ✅ Complete | OpenRouter LLM with 4D scoring + mock fallback |
-| GitHub Repo Fetcher | ✅ Complete | Handles main/master branches, file filtering |
+| GitHub Repo Fetcher | ✅ Complete | Handles main/master branches, `.git` suffix, file filtering |
+| Anti-Gaming Checks | ✅ Complete | Repo age (>10 min) and commit count (>3) validation |
 | Certificate Dashboard | ✅ Complete | Grid view, filters, stats, refresh |
-| Certificate Cards | ✅ Complete | Score badges, analysis bars, blockchain links |
+| Certificate Cards | ✅ Complete | Score badges, chain badges, share button, analysis bars |
 | NFT Minting (ARC-19) | ✅ Complete | IPFS upload + ASA creation + metadata hash |
 | Record Mint Backend | ✅ Complete | Updates certificate with asset_id and tx_id |
-| Employer Verification | ✅ Complete | Asset ID lookup with full proof display |
+| Employer Verification | ✅ Complete | Tabbed portal: Single, Batch, Revocation Feed |
+| Batch Verification | ✅ Complete | Verify up to 50 certificates at once with summary |
+| Revocation Feed | ✅ Complete | Real-time auto-refresh (30s polling) with chain info |
+| Multi-Chain Support | ✅ Complete | Algorand (real), Ethereum & Polygon (simulated) |
+| Portfolio Builder | ✅ Complete | Editable profile, certificate grid, public sharing |
+| Certificate Sharing | ✅ Complete | WhatsApp, Email, tokenized links with 1h–30d expiry |
 | Public Verify Endpoint | ✅ Complete | `/verify/:assetId` with blockchain cross-check |
 | Smart Contract (ARC-4) | ✅ Complete | Mint, verify, revoke + box storage + skill registry |
-| Backend API | ✅ Complete | All routes, services, error handling |
+| SQLite Database | ✅ Complete | 8 tables, indexes, safe migrations, seed data |
+| Docker Deployment | ✅ Complete | Docker Compose with persistent volumes |
+| Backend API | ✅ Complete | 18+ endpoints across 5 route modules |
 | AI Service | ✅ Complete | Flask + OpenRouter with graceful fallbacks |
 | IPFS Integration | ✅ Complete | Pinata upload for certificate metadata |
-| Error Handling | ✅ Complete | Error boundaries, toast notifications, API fallbacks |
-| Demo Data | ✅ Complete | Sample submissions + mock certificates |
+| Error Handling | ✅ Complete | Null safety, error boundaries, toast notifications |
 | Environment Config | ✅ Complete | `.env.example` files for all services |
 | Responsive Design | ✅ Complete | Mobile-first with md/lg breakpoints |
 
@@ -571,13 +599,11 @@ curl -X POST http://localhost:3001/api/certificates/submit-evidence \
 
 ## 🔮 Future Roadmap
 
-- **Multi-chain Support** — Deploy on Ethereum, Polygon alongside Algorand
-- **Portfolio Builder** — Students create shareable profiles with all certificates
-- **Batch Verification** — Employers verify multiple candidates at once
-- **Revocation Feed** — Real-time alerts when certificates are revoked
+- **Real Multi-chain Deployment** — Deploy smart contracts on Ethereum & Polygon (currently simulated)
 - **Institution Accounts** — Universities can issue certificates through CertifyMe
 - **Advanced AI Models** — Fine-tuned code analysis models for specific skills
 - **Mobile App** — React Native app for wallet-native certificate management
+- **CI/CD Pipeline** — Automated testing and deployment with GitHub Actions
 
 ---
 

@@ -99,7 +99,7 @@ const CertificateCard = ({ certificate, onVerify }: CertificateCardProps) => {
                 </div>
 
                 {/* Analysis mini bars */}
-                {certificate.status !== 'REJECTED' && (
+                {certificate.status !== 'REJECTED' && certificate.analysis && (
                     <div className="grid grid-cols-4 gap-1 mt-2">
                         <div className="text-center">
                             <div className="text-[10px] opacity-50">Quality</div>

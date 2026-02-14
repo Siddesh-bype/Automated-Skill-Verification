@@ -57,6 +57,9 @@ def fetch_github_repo_files(github_url: str) -> dict:
 
     owner = parts[-2]
     repo = parts[-1]
+    # Strip .git suffix if present (e.g. from clone URLs)
+    if repo.endswith(".git"):
+        repo = repo[:-4]
 
     # Use GitHub API to get repo tree
     api_url = f"https://api.github.com/repos/{owner}/{repo}/git/trees/main?recursive=1"
