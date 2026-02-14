@@ -93,7 +93,7 @@ Traditional skill verification is **broken**:
 - 📈 **AI Score Breakdown** — See exactly how the candidate scored across all dimensions
 
 ### Platform
-- 🌐 **Modern UI** — Professional design system with dark mode, Inter typography, and micro-animations
+- 🌐 **Modern UI** — Glassmorphism design system with dark mode, Outfit typography, Framer Motion animations, and 3D-style floating effects
 - 🔐 **Multi-Wallet Support** — Pera, Defly, Exodus, and Lute wallets supported
 - 🏗️ **ARC-19 Compliant** — NFT certificates follow the Algorand ARC-19 standard
 - 📌 **IPFS Metadata** — Certificate metadata is permanently stored on IPFS via Pinata
@@ -172,7 +172,8 @@ Traditional skill verification is **broken**:
 | Layer | Technology | Purpose |
 |---|---|---|
 | **Frontend** | React 18 + TypeScript + Vite | SPA with hot-reload |
-| **Styling** | TailwindCSS + DaisyUI | Custom `certifyme` theme, dark mode |
+| **Styling** | TailwindCSS + DaisyUI + Framer Motion | Glassmorphism theme, dark mode, animations |
+| **Animations** | Framer Motion + Lottie React | Scroll animations, floating 3D effects, micro-interactions |
 | **Wallet** | `@txnlab/use-wallet-react` | Pera, Defly, Exodus, Lute support |
 | **Backend** | Express.js (Node.js) | REST API, certificate orchestration |
 | **AI Engine** | Flask (Python) + OpenRouter | Code analysis via `openai/gpt-oss-120b:free` |
@@ -199,6 +200,11 @@ CertifyMe/
 │   │   │   │   ├── VerifyCredential.tsx # Public certificate verification
 │   │   │   │   ├── EmployerView.tsx     # ⭐ Employer verification portal
 │   │   │   │   ├── ConnectWallet.tsx    # Multi-wallet connection modal
+│   │   │   │   ├── AnimatedBackground.tsx # Particle grid + radial glow background
+│   │   │   │   ├── FloatingIcon.tsx     # Framer Motion floating animation wrapper
+│   │   │   │   ├── AnimatedCounter.tsx  # Count-up stats on scroll
+│   │   │   │   ├── GlassCard.tsx        # Glassmorphism card component
+│   │   │   │   ├── LottieAnimation.tsx  # Lottie JSON animation wrapper
 │   │   │   │   └── ErrorBoundary.tsx    # Error boundary wrapper
 │   │   │   ├── 📁 services/
 │   │   │   │   ├── verification.ts     # ⭐ Backend API client (submit, fetch, verify)
@@ -541,7 +547,7 @@ curl -X POST http://localhost:3001/api/certificates/submit-evidence \
 
 | Feature | Status | Details |
 |---|---|---|
-| Landing Page UI | ✅ Complete | Professional dark theme, Inter font, SVG icons, animations |
+| Landing Page UI | ✅ Complete | Glassmorphism dark theme, Outfit font, Framer Motion animations, floating 3D effects |
 | Wallet Connection | ✅ Complete | Pera, Defly, Exodus, Lute via `@txnlab/use-wallet-react` |
 | Submit Evidence Modal | ✅ Complete | Multi-step form with progress indicators |
 | AI Code Analysis | ✅ Complete | OpenRouter LLM with 4D scoring + mock fallback |
