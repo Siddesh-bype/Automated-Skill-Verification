@@ -16,80 +16,67 @@ const EmployerView = ({ openModal, closeModal }: EmployerViewProps) => {
     const handleSearch = async () => {
         const id = parseInt(assetId)
         if (isNaN(id)) return
-
-        setLoading(true)
-        setSearched(true)
-        try {
-            const res = await verifyCertificate(id)
-            setCertificate(res.certificate)
-            setVerified(res.verified)
-        } catch {
-            setCertificate(null)
-            setVerified(false)
-        } finally {
-            setLoading(false)
-        }
+        setLoading(true); setSearched(true)
+        try { const res = await verifyCertificate(id); setCertificate(res.certificate); setVerified(res.verified) }
+        catch { setCertificate(null); setVerified(false) }
+        finally { setLoading(false) }
     }
 
     const getScoreRating = (score: number) => {
-        if (score >= 90) return { label: 'Exceptional', color: 'text-success', emoji: '🏆' }
-        if (score >= 75) return { label: 'Strong', color: 'text-success', emoji: '⭐' }
-        if (score >= 60) return { label: 'Competent', color: 'text-info', emoji: '👍' }
-        if (score >= 45) return { label: 'Developing', color: 'text-warning', emoji: '📈' }
-        return { label: 'Insufficient', color: 'text-error', emoji: '⚠️' }
+        if (score >= 90) return { label: 'Exceptional', color: '#10b981', emoji: '🏆' }
+        if (score >= 75) return { label: 'Strong', color: '#10b981', emoji: '⭐' }
+        if (score >= 60) return { label: 'Competent', color: '#06b6d4', emoji: '👍' }
+        if (score >= 45) return { label: 'Developing', color: '#f59e0b', emoji: '📈' }
+        return { label: 'Insufficient', color: '#ef4444', emoji: '⚠️' }
     }
 
-    const reset = () => {
-        setCertificate(null)
-        setAssetId('')
-        setSearched(false)
-        closeModal()
-    }
+    const reset = () => { setCertificate(null); setAssetId(''); setSearched(false); closeModal() }
 
     return (
         <dialog id="employer_view_modal" className={`modal ${openModal ? 'modal-open' : ''}`}>
             <div className="modal-box max-w-2xl">
-                <h3 className="font-bold text-2xl mb-2">👔 Employer Verification Portal</h3>
-                <p className="text-sm opacity-70 mb-4">
-                    Instantly verify a candidate&apos;s skills. Enter the certificate Asset ID from their résumé or scan their QR code.
-                </p>
+                <div className="modal-header">
+                    <div className="flex items-center justify-between">
+                        <h3>Employer Verification Portal</h3>
+                        <span className="step-indicator step-indicator-active">👔 Hiring Tool</span>
+                    </div>
+                    <p>Instantly verify a candidate's skills — enter the certificate Asset ID from their résumé or scan their QR code</p>
+                </div>
 
-                <div className="flex gap-2 mb-4">
-                    <input
-                        className="input input-bordered flex-1"
-                        placeholder="Certificate Asset ID"
-                        value={assetId}
-                        onChange={(e) => setAssetId(e.target.value)}
-                        type="number"
-                    />
-                    <button className={`btn btn-primary ${loading ? 'loading' : ''}`} onClick={handleSearch} disabled={loading || !assetId}>
-                        🔍 Verify
-                    </button>
+                <div className="flex gap-2 mb-5">
+                    <input className="input input-bordered flex-1" placeholder="Certificate Asset ID" value={assetId} onChange={(e) => setAssetId(e.target.value)} type="number" />
+                    <button className={`btn btn-primary ${loading ? 'loading' : ''}`} onClick={handleSearch} disabled={loading || !assetId}>🔍 Verify</button>
                 </div>
 
                 {searched && !loading && !certificate && (
-                    <div className="alert alert-error">
-                        <span>No certificate found for this Asset ID. The certificate may not exist or may have been revoked.</span>
+                    <div className="text-center py-6 rounded-xl" style={{ background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.15)' }}>
+                        <div className="text-3xl mb-2">🚫</div>
+                        <p className="font-semibold text-adaptive-heading">No certificate found</p>
+                        <p className="text-sm text-adaptive-muted">The certificate may not exist or may have been revoked.</p>
                     </div>
                 )}
 
                 {certificate && (
-                    <div className="flex flex-col gap-3">
-                        {/* Big verdict banner */}
-                        <div className={`text-center py-4 rounded-xl ${verified ? 'bg-success/20' : 'bg-error/20'}`}>
-                            <div className="text-4xl mb-1">{verified ? '✅' : '❌'}</div>
-                            <div className="text-xl font-bold">{verified ? 'SKILL VERIFIED' : 'NOT VERIFIED'}</div>
-                            <div className="text-sm opacity-70">
-                                {verified ? 'This candidate\'s skill has been verified by AI analysis' : 'This certificate could not be verified'}
+                    <div className="flex flex-col gap-4">
+                        {/* Big verdict */}
+                        <div className={`text-center py-5 rounded-xl`}
+                            style={{
+                                background: verified ? 'rgba(16,185,129,0.06)' : 'rgba(239,68,68,0.06)',
+                                border: `1px solid ${verified ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}`,
+                            }}>
+                            <div className="text-4xl mb-2">{verified ? '✅' : '❌'}</div>
+                            <div className="text-xl font-bold text-adaptive-heading">{verified ? 'SKILL VERIFIED' : 'NOT VERIFIED'}</div>
+                            <div className="text-sm text-adaptive-muted">
+                                {verified ? "This candidate's skill has been verified by AI analysis" : 'This certificate could not be verified'}
                             </div>
                         </div>
 
-                        {/* Quick summary for employer */}
-                        <div className="bg-base-200 rounded-xl p-4">
-                            <div className="flex items-center justify-between mb-3">
+                        {/* Candidate summary */}
+                        <div className="p-5 rounded-xl" style={{ background: 'var(--step-gradient)', border: '1px solid var(--step-border)' }}>
+                            <div className="flex items-center justify-between mb-4">
                                 <div>
-                                    <div className="text-lg font-bold">{certificate.student_name}</div>
-                                    <div className="text-sm opacity-70">{certificate.skill} — {certificate.skill_level}</div>
+                                    <div className="text-lg font-bold text-adaptive-heading">{certificate.student_name}</div>
+                                    <div className="text-sm text-adaptive-muted">{certificate.skill} — {certificate.skill_level}</div>
                                 </div>
                                 <div className="text-center">
                                     {(() => {
@@ -97,65 +84,53 @@ const EmployerView = ({ openModal, closeModal }: EmployerViewProps) => {
                                         return (
                                             <>
                                                 <div className="text-2xl">{rating.emoji}</div>
-                                                <div className={`text-2xl font-bold ${rating.color}`}>{certificate.ai_score}</div>
-                                                <div className="text-xs opacity-60">{rating.label}</div>
+                                                <div className="text-2xl font-bold" style={{ color: rating.color }}>{certificate.ai_score}</div>
+                                                <div className="text-xs text-adaptive-muted">{rating.label}</div>
                                             </>
                                         )
                                     })()}
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-4 gap-2 text-center text-xs">
-                                <div>
-                                    <div className="font-bold">{certificate.analysis.code_quality}</div>
-                                    <div className="opacity-50">Quality</div>
-                                </div>
-                                <div>
-                                    <div className="font-bold">{certificate.analysis.complexity}</div>
-                                    <div className="opacity-50">Complexity</div>
-                                </div>
-                                <div>
-                                    <div className="font-bold">{certificate.analysis.best_practices}</div>
-                                    <div className="opacity-50">Practices</div>
-                                </div>
-                                <div>
-                                    <div className="font-bold">{certificate.analysis.originality}</div>
-                                    <div className="opacity-50">Originality</div>
-                                </div>
+                            <div className="grid grid-cols-4 gap-3">
+                                {[
+                                    { label: 'Quality', value: certificate.analysis.code_quality, cls: 'progress-bar-indigo' },
+                                    { label: 'Complexity', value: certificate.analysis.complexity, cls: 'progress-bar-cyan' },
+                                    { label: 'Practices', value: certificate.analysis.best_practices, cls: 'progress-bar-emerald' },
+                                    { label: 'Originality', value: certificate.analysis.originality, cls: 'progress-bar-violet' },
+                                ].map((m) => (
+                                    <div key={m.label} className="text-center">
+                                        <div className="font-bold text-sm text-adaptive-heading mb-1">{m.value}</div>
+                                        <div className="progress-bar-container mb-1">
+                                            <div className={`progress-bar-fill ${m.cls}`} style={{ width: `${m.value}%` }} />
+                                        </div>
+                                        <div className="text-[10px] text-adaptive-muted">{m.label}</div>
+                                    </div>
+                                ))}
                             </div>
                         </div>
 
-                        {/* Evidence links */}
+                        {/* Links */}
                         <div className="flex gap-2 flex-wrap">
                             {certificate.github_url && (
-                                <a href={certificate.github_url} target="_blank" rel="noopener noreferrer" className="btn btn-sm btn-outline flex-1">
-                                    📂 View Code
-                                </a>
+                                <a href={certificate.github_url} target="_blank" rel="noopener noreferrer" className="btn btn-sm btn-outline flex-1">📂 View Code</a>
                             )}
                             {certificate.blockchain_asset_id && (
-                                <a
-                                    href={`https://testnet.explorer.perawallet.app/asset/${certificate.blockchain_asset_id}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="btn btn-sm btn-outline flex-1"
-                                >
-                                    ⛓️ Blockchain Proof
-                                </a>
+                                <a href={`https://testnet.explorer.perawallet.app/asset/${certificate.blockchain_asset_id}`} target="_blank" rel="noopener noreferrer" className="btn btn-sm btn-outline flex-1">⛓️ Blockchain Proof</a>
                             )}
                         </div>
 
-                        <div className="text-xs text-center opacity-50">
+                        <div className="text-xs text-center text-adaptive-muted" style={{ opacity: 0.6 }}>
                             Issued by {certificate.issuer} on {new Date(certificate.issue_date).toLocaleDateString()}
                         </div>
                     </div>
                 )}
 
                 <div className="modal-action">
-                    <button className="btn" onClick={reset}>
-                        Close
-                    </button>
+                    <button className="btn" onClick={reset}>Close</button>
                 </div>
             </div>
+            <div className="modal-backdrop" onClick={reset}></div>
         </dialog>
     )
 }

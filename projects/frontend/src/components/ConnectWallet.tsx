@@ -8,20 +8,24 @@ interface ConnectWalletInterface {
 
 const ConnectWallet = ({ openModal, closeModal }: ConnectWalletInterface) => {
   const { wallets, activeAddress } = useWallet()
-
   const isKmd = (wallet: Wallet) => wallet.id === WalletId.KMD
 
   return (
     <dialog id="connect_wallet_modal" className={`modal ${openModal ? 'modal-open' : ''}`}>
       <div className="modal-box">
-        <h3 className="font-bold text-2xl mb-1">
-          {activeAddress ? '🔗 Wallet Connected' : '🔐 Connect Wallet'}
-        </h3>
-        <p className="text-sm opacity-60 mb-4">
-          {activeAddress
-            ? 'Your Algorand wallet is connected. You can now submit evidence and mint certificates.'
-            : 'Choose a wallet provider to connect to Algorand TestNet.'}
-        </p>
+        <div className="modal-header">
+          <div className="flex items-center justify-between">
+            <h3>{activeAddress ? 'Wallet Connected' : 'Connect Wallet'}</h3>
+            <span className={`step-indicator ${activeAddress ? 'step-indicator-done' : 'step-indicator-active'}`}>
+              {activeAddress ? '🔗 Connected' : '🔐 Required'}
+            </span>
+          </div>
+          <p>
+            {activeAddress
+              ? 'Your Algorand wallet is connected. You can now submit evidence and mint certificates.'
+              : 'Choose a wallet provider to connect to Algorand TestNet.'}
+          </p>
+        </div>
 
         <div className="grid gap-2">
           {activeAddress && (
@@ -35,33 +39,29 @@ const ConnectWallet = ({ openModal, closeModal }: ConnectWalletInterface) => {
             wallets?.map((wallet) => (
               <button
                 data-test-id={`${wallet.id}-connect`}
-                className="btn btn-outline border-surface-700 hover:border-brand-500 hover:bg-brand-500/10 justify-start gap-3 h-14"
+                className="btn btn-outline justify-start gap-3 h-14 transition-all duration-300"
+                style={{ borderColor: 'var(--glass-border)', background: 'var(--step-gradient)' }}
                 key={`provider-${wallet.id}`}
                 onClick={() => wallet.connect()}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(99,102,241,0.3)'
+                  e.currentTarget.style.background = 'rgba(99,102,241,0.08)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--glass-border)'
+                  e.currentTarget.style.background = 'var(--step-gradient)'
+                }}
               >
                 {!isKmd(wallet) && (
-                  <img
-                    alt={`wallet_icon_${wallet.id}`}
-                    src={wallet.metadata.icon}
-                    className="w-7 h-7 object-contain"
-                  />
+                  <img alt={`wallet_icon_${wallet.id}`} src={wallet.metadata.icon} className="w-7 h-7 object-contain" />
                 )}
-                <span className="font-medium">
-                  {isKmd(wallet) ? 'LocalNet Wallet' : wallet.metadata.name}
-                </span>
+                <span className="font-medium">{isKmd(wallet) ? 'LocalNet Wallet' : wallet.metadata.name}</span>
               </button>
             ))}
         </div>
 
         <div className="modal-action">
-          <button
-            type="button"
-            data-test-id="close-wallet-modal"
-            className="btn"
-            onClick={closeModal}
-          >
-            Close
-          </button>
+          <button type="button" data-test-id="close-wallet-modal" className="btn" onClick={closeModal}>Close</button>
           {activeAddress && (
             <button
               type="button"
@@ -70,12 +70,8 @@ const ConnectWallet = ({ openModal, closeModal }: ConnectWalletInterface) => {
               onClick={async () => {
                 if (wallets) {
                   const activeWallet = wallets.find((w) => w.isActive)
-                  if (activeWallet) {
-                    await activeWallet.disconnect()
-                  } else {
-                    localStorage.removeItem('@txnlab/use-wallet:v3')
-                    window.location.reload()
-                  }
+                  if (activeWallet) await activeWallet.disconnect()
+                  else { localStorage.removeItem('@txnlab/use-wallet:v3'); window.location.reload() }
                 }
               }}
             >
