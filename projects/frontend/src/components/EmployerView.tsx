@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { verifyCertificate, type VerificationResult } from '../services/verification'
 import BatchVerification from './BatchVerification'
 import RevocationFeed from './RevocationFeed'
+import LottieHandler from './ui/LottieHandler'
 
 interface EmployerViewProps {
     openModal: boolean
@@ -98,8 +99,12 @@ const EmployerView = ({ openModal, closeModal }: EmployerViewProps) => {
                         </div>
 
                         {searched && !loading && !certificate && (
-                            <div className="alert alert-error">
-                                <span>No certificate found for this Asset ID. The certificate may not exist or may have been revoked.</span>
+                            <div className="flex justify-center py-8">
+                                <LottieHandler
+                                    type="error"
+                                    message="No certificate found for this Asset ID. It may not exist or has been revoked."
+                                    className="w-full max-w-sm"
+                                />
                             </div>
                         )}
 

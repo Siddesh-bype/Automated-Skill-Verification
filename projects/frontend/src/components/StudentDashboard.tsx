@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { fetchCertificates, type VerificationResult } from '../services/verification'
 import CertificateCard from './CertificateCard'
+import LottieHandler from './ui/LottieHandler'
 
 interface StudentDashboardProps {
     openModal: boolean
@@ -111,27 +112,21 @@ const StudentDashboard = ({ openModal, closeModal, onSubmitNew, onVerify, refres
 
                 {/* Certificate Grid */}
                 {loading ? (
-                    <div className="flex flex-col items-center justify-center py-12 gap-3">
-                        <span className="loading loading-spinner loading-lg"></span>
-                        <p className="text-sm opacity-60">Loading certificates...</p>
+                    <div className="flex flex-col items-center justify-center py-12">
+                        <LottieHandler type="loading" message="Verifying credentials on-chain..." />
                     </div>
                 ) : filtered.length === 0 ? (
-                    <div className="text-center py-12">
-                        <div className="text-5xl mb-4">📭</div>
-                        <p className="text-lg font-medium">
-                            {filter !== 'all'
-                                ? `No ${filter.toLowerCase()} certificates`
-                                : 'No certificates yet'
-                            }
-                        </p>
-                        <p className="text-sm opacity-60 mb-4">
-                            {filter !== 'all'
-                                ? 'Try a different filter or submit new evidence.'
-                                : 'Submit a GitHub repository to get your skills verified by AI!'}
-                        </p>
-                        <button className="btn btn-primary" onClick={onSubmitNew}>
-                            🚀 Submit Your First Evidence
-                        </button>
+                    <div className="py-8">
+                        <LottieHandler
+                            type="empty"
+                            message={filter !== 'all' ? `No ${filter.toLowerCase()} certificates found` : "No certificates yet. Submit your code!"}
+                            className="w-full max-w-md mx-auto"
+                        />
+                        <div className="text-center mt-4">
+                            <button className="btn btn-primary" onClick={onSubmitNew}>
+                                🚀 Submit Your First Evidence
+                            </button>
+                        </div>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 overflow-y-auto max-h-[50vh] pr-2">

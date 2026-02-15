@@ -7,6 +7,7 @@ import StudentDashboard from './components/StudentDashboard'
 import VerifyCredential from './components/VerifyCredential'
 import EmployerView from './components/EmployerView'
 import PortfolioPage from './components/PortfolioPage'
+import AnimatedHero from './components/3d/AnimatedHero'
 
 /* ── Inline SVG Icons (professional, minimal line-art) ── */
 const IconShield = () => (
@@ -154,41 +155,40 @@ const Home: React.FC = () => {
       </nav>
 
       {/* ── Hero Section ── */}
-      <section className="relative overflow-hidden">
-        {/* Subtle bg accent — single warm glow, not floating blobs */}
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-brand-500/[0.04] rounded-full blur-[120px] -translate-y-1/2 translate-x-1/3 pointer-events-none" />
+      <section className="relative overflow-hidden min-h-[80vh] flex items-center">
+        <AnimatedHero />
 
-        <div className="max-w-7xl mx-auto px-6 pt-24 pb-20 md:pt-32 md:pb-28">
+        <div className="max-w-7xl mx-auto px-6 py-20 relative z-10">
           <div className="grid md:grid-cols-2 gap-16 items-center">
             {/* Left: Copy */}
             <div className="animate-fade-in">
               <p className="section-heading">Blockchain-Verified Credentials</p>
-              <h1 className="text-4xl md:text-5xl lg:text-[3.4rem] font-extrabold text-surface-50 leading-[1.1] mb-6">
+              <h1 className="text-4xl md:text-6xl lg:text-[4rem] font-extrabold text-white leading-[1.1] mb-6 tracking-tight drop-shadow-sm">
                 Prove your skills.<br />
-                <span className="text-brand-400">Earn trust.</span>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-300 to-brand-500">Earn trust.</span>
               </h1>
-              <p className="text-base md:text-lg text-surface-400 leading-relaxed max-w-lg mb-10">
+              <p className="text-base md:text-xl text-surface-200 leading-relaxed max-w-lg mb-10 font-light">
                 CertifyMe uses automated code analysis and the Algorand blockchain to issue
                 tamper-proof skill certificates that employers can verify in seconds.
               </p>
               <div className="flex flex-wrap gap-4">
                 <button
-                  className="btn-primary-workspace flex items-center gap-2"
+                  className="btn-primary-workspace flex items-center gap-2 shadow-neon hover:shadow-brand-500/50"
                   onClick={() => setSubmitModal(true)}
                 >
                   Submit Evidence <IconArrowRight />
                 </button>
                 <button
-                  className="btn-secondary-workspace flex items-center gap-2"
+                  className="btn-secondary-workspace flex items-center gap-2 backdrop-blur-md bg-white/5 border-white/10 hover:bg-white/10"
                   onClick={() => setDashboardModal(true)}
                 >
                   <IconFileText /> My Certificates
                 </button>
               </div>
               {!activeAddress && (
-                <p className="mt-5 text-sm text-surface-500">
+                <p className="mt-6 text-sm text-surface-400">
                   Connect your Algorand wallet to get started.{' '}
-                  <button className="text-brand-400 hover:text-brand-300 underline underline-offset-2 transition-colors" onClick={toggleWalletModal}>
+                  <button className="text-brand-300 hover:text-brand-200 underline underline-offset-4 transition-colors font-medium" onClick={toggleWalletModal}>
                     Connect Wallet
                   </button>
                 </p>
@@ -196,29 +196,32 @@ const Home: React.FC = () => {
             </div>
 
             {/* Right: Stats / Trust Indicators */}
-            <div className="animate-slide-up hidden md:block">
-              <div className="card-workspace p-8">
-                <div className="grid grid-cols-2 gap-8 mb-8">
+            <div className="animate-slide-up hidden md:block perspective-1000">
+              <div className="card-workspace p-8 transform rotate-y-6 hover:rotate-y-0 transition-transform duration-500 hover:shadow-2xl hover:shadow-brand-500/10 border-white/10 bg-white/5 backdrop-blur-xl">
+                <div className="grid grid-cols-2 gap-10 mb-8">
                   <div>
-                    <p className="stat-number">100%</p>
+                    <p className="stat-number text-brand-300">100%</p>
                     <p className="stat-label">On-chain verifiable</p>
                   </div>
                   <div>
-                    <p className="stat-number">&lt;30s</p>
+                    <p className="stat-number text-brand-300">&lt;30s</p>
                     <p className="stat-label">Verification time</p>
                   </div>
                   <div>
-                    <p className="stat-number">NFT</p>
+                    <p className="stat-number text-brand-300">NFT</p>
                     <p className="stat-label">Certificate format</p>
                   </div>
                   <div>
-                    <p className="stat-number">4-Dim</p>
+                    <p className="stat-number text-brand-300">4-Dim</p>
                     <p className="stat-label">Code analysis</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 pt-6 border-t border-surface-700/50">
-                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                  <span className="text-sm text-surface-400">Live on Algorand TestNet</span>
+                <div className="flex items-center gap-3 pt-6 border-t border-white/10">
+                  <span className="relative flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                  </span>
+                  <span className="text-sm text-surface-300 font-medium">Live on Algorand TestNet</span>
                 </div>
               </div>
             </div>
@@ -368,8 +371,8 @@ const Home: React.FC = () => {
               <div className="flex items-center justify-between mb-4">
                 <span className="text-3xl">{item.icon}</span>
                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${item.badge === 'NEW'
-                    ? 'bg-brand-500/20 text-brand-400'
-                    : 'bg-surface-700 text-surface-400'
+                  ? 'bg-brand-500/20 text-brand-400'
+                  : 'bg-surface-700 text-surface-400'
                   }`}>
                   {item.badge}
                 </span>
