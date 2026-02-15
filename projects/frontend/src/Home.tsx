@@ -96,6 +96,12 @@ const IconSearch = () => (
   </svg>
 )
 
+const IconAlgorand = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M13.84 4.35C14.07 4.02 14.12 3.59 13.97 3.22C13.82 2.85 13.48 2.59 13.08 2.56L13.04 2.56C12.49 2.56 12.01 2.92 11.88 3.45L11.84 3.65L7.99 18.06L6.59 13.12L9.2 3.62L9.24 3.42C9.37 2.89 9.85 2.53 10.4 2.53C10.84 2.53 11.23 2.8 11.41 3.2L11.45 3.33L13.84 4.35ZM18.91 19.46L13.98 17.51L12.59 18.06C12.59 18.06 12.58 18.06 12.57 18.06L17.5 19.95C17.9 20.1 18.35 19.98 18.63 19.65C18.91 19.32 18.95 18.87 18.75 18.5L18.91 19.46ZM16.34 18.42L12.92 6.07L10 17.02L8.68 21.95L8.64 22.09C8.5 22.61 8.8 23.16 9.32 23.31C9.42 23.34 9.53 23.35 9.63 23.35C10.05 23.35 10.43 23.09 10.59 22.69L10.63 22.56L11.53 19.18L16.34 18.42ZM5.97 18.73L7.38 13.43L4.92 4.77L4.9 4.71C4.7 3.99 3.96 3.56 3.24 3.76C2.52 3.96 2.09 4.7 2.29 5.42L5.27 15.93L5.3 16.03L5.97 18.73Z" />
+  </svg>
+)
+
 /* ── Component ── */
 /* ── Theme Icons ── */
 const IconSun = () => (
@@ -448,8 +454,8 @@ const Home: React.FC = () => {
                 <IconBriefcase />
               </div>
               <div>
-                <h2 className="text-xl md:text-2xl font-bold text-surface-50 mb-2">Hiring? Verify candidates instantly.</h2>
-                <p className="text-surface-300 text-sm md:text-base max-w-lg leading-relaxed font-medium">
+                <h2 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white mb-2">Hiring? Verify candidates instantly.</h2>
+                <p className="text-slate-600 dark:text-slate-300 text-sm md:text-base max-w-lg leading-relaxed font-medium">
                   No phone calls to universities, no trust issues. Enter a certificate asset ID and see
                   the full, blockchain-verified proof of skill.
                 </p>
@@ -474,9 +480,17 @@ const Home: React.FC = () => {
             </div>
             <span>CertifyMe</span>
           </div>
-          <p className="text-sm text-surface-600">
-            Automated Skill Verification · Built on Algorand
-          </p>
+          <div className="text-sm text-surface-600 flex items-center gap-2">
+            <span>Automated Skill Verification</span>
+            <span className="text-surface-400">·</span>
+            <div className="flex items-center gap-1">
+              <span>Built on</span>
+              <div className="w-5 h-5 bg-black rounded-full flex items-center justify-center text-white p-0.5">
+                <IconAlgorand />
+              </div>
+              <span className="font-semibold">Algorand</span>
+            </div>
+          </div>
           <div className="flex gap-6">
             <span className="nav-link text-xs" onClick={() => setVerifyModal(true)}>Verify</span>
             <span className="nav-link text-xs" onClick={() => setEmployerModal(true)}>Employers</span>
