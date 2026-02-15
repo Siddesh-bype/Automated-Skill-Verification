@@ -20,7 +20,9 @@ const verificationRouter = require('./routes/verification');
 const skillsRouter = require('./routes/skills');
 const campusRouter = require('./routes/campus');
 const portfolioRouter = require('./routes/portfolio');
+const portfolioRouter = require('./routes/portfolio');
 const sharingRouter = require('./routes/sharing');
+const authRouter = require('./routes/auth');
 
 // ── Services (initialize singletons on import) ──
 const algorandService = require('./services/algorand');
@@ -86,6 +88,7 @@ app.use('/api/skills', skillsRouter);
 app.use('/api/campus', campusRouter);
 app.use('/api/portfolio', portfolioRouter);
 app.use('/api/share', sharingRouter);
+app.use('/api/auth', authRouter);
 
 // ── 404 handler ──
 app.use((req, res) => {

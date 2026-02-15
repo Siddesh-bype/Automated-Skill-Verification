@@ -147,6 +147,16 @@ function initializeSchema() {
         CREATE INDEX IF NOT EXISTS idx_revocations_created ON revocation_events(created_at);
         CREATE INDEX IF NOT EXISTS idx_share_links_token ON share_links(token);
         CREATE INDEX IF NOT EXISTS idx_share_links_cert ON share_links(cert_id);
+
+        -- Users / Custodial Wallets
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL,
+            wallet_address TEXT NOT NULL,
+            encrypted_key TEXT NOT NULL,
+            created_at TEXT DEFAULT (datetime('now'))
+        );
     `);
 
     // Safe migration: add chain_name column to submissions if it doesn't exist

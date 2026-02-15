@@ -130,8 +130,8 @@ const StudentDashboard = ({ openModal, closeModal, onSubmitNew, onVerify, refres
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 overflow-y-auto max-h-[50vh] pr-2">
-                        {filtered.map((cert) => (
-                            <CertificateCard key={cert.id} certificate={cert} onVerify={onVerify} />
+                        {filtered.map((cert, idx) => (
+                            <CertificateCard key={cert.id} certificate={cert} onVerify={onVerify} index={idx} />
                         ))}
                     </div>
                 )}

@@ -1,6 +1,6 @@
 // src/Home.tsx — CertifyMe Landing Page
 import { useWallet } from '@txnlab/use-wallet-react'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import ConnectWallet from './components/ConnectWallet'
 import SubmitEvidence from './components/SubmitEvidence'
 import StudentDashboard from './components/StudentDashboard'
@@ -8,6 +8,7 @@ import VerifyCredential from './components/VerifyCredential'
 import EmployerView from './components/EmployerView'
 import PortfolioPage from './components/PortfolioPage'
 import AnimatedHero from './components/3d/AnimatedHero'
+import FadeInSection from './components/FadeInSection'
 
 /* ── Inline SVG Icons (professional, minimal line-art) ── */
 const IconShield = () => (
@@ -96,6 +97,23 @@ const IconSearch = () => (
 )
 
 /* ── Component ── */
+/* ── Theme Icons ── */
+const IconSun = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="5" />
+    <line x1="12" y1="1" x2="12" y2="3" /><line x1="12" y1="21" x2="12" y2="23" />
+    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" /><line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+    <line x1="1" y1="12" x2="3" y2="12" /><line x1="21" y1="12" x2="23" y2="12" />
+    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" /><line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+  </svg>
+)
+
+const IconMoon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+  </svg>
+)
+
 const Home: React.FC = () => {
   const [openWalletModal, setOpenWalletModal] = useState(false)
   const [submitModal, setSubmitModal] = useState(false)
@@ -106,6 +124,20 @@ const Home: React.FC = () => {
   const [verifyAssetId, setVerifyAssetId] = useState<number | null>(null)
   const [refreshTrigger, setRefreshTrigger] = useState(0)
   const { activeAddress } = useWallet()
+
+  // Theme management
+  const [isDark, setIsDark] = useState(() => {
+    const saved = localStorage.getItem('certifyme-theme')
+    return saved !== 'light'
+  })
+
+  useEffect(() => {
+    const theme = isDark ? 'certifyme' : 'certifyme-light'
+    document.documentElement.setAttribute('data-theme', theme)
+    localStorage.setItem('certifyme-theme', isDark ? 'dark' : 'light')
+  }, [isDark])
+
+  const toggleTheme = () => setIsDark(prev => !prev)
 
   const toggleWalletModal = () => setOpenWalletModal(!openWalletModal)
 
@@ -141,16 +173,25 @@ const Home: React.FC = () => {
             {activeAddress && <span className="nav-link" onClick={() => setPortfolioModal(true)}>Portfolio</span>}
           </div>
 
-          {/* Connect Wallet */}
-          <button
-            data-test-id="connect-wallet"
-            className="btn-primary-workspace text-sm py-2 px-5 rounded-lg"
-            onClick={toggleWalletModal}
-          >
-            {activeAddress
-              ? `${activeAddress.substring(0, 4)}...${activeAddress.substring(activeAddress.length - 4)}`
-              : 'Connect Wallet'}
-          </button>
+          {/* Theme Toggle + Connect Wallet */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={toggleTheme}
+              className="theme-toggle"
+              title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            >
+              {isDark ? <IconSun /> : <IconMoon />}
+            </button>
+            <button
+              data-test-id="connect-wallet"
+              className="btn-primary-workspace text-sm py-2 px-5 rounded-lg"
+              onClick={toggleWalletModal}
+            >
+              {activeAddress
+                ? `${activeAddress.substring(0, 4)}...${activeAddress.substring(activeAddress.length - 4)}`
+                : 'Connect Wallet'}
+            </button>
+          </div>
         </div>
       </nav>
 
@@ -197,31 +238,31 @@ const Home: React.FC = () => {
 
             {/* Right: Stats / Trust Indicators */}
             <div className="animate-slide-up hidden md:block perspective-1000">
-              <div className="card-workspace p-8 transform rotate-y-6 hover:rotate-y-0 transition-transform duration-500 hover:shadow-2xl hover:shadow-brand-500/10 border-white/10 bg-white/5 backdrop-blur-xl">
+              <div className="card-workspace p-8 transform rotate-y-6 hover:rotate-y-0 transition-transform duration-500 hover:shadow-2xl hover:shadow-brand-500/10 border-surface-700/60 bg-surface-950/80 backdrop-blur-xl">
                 <div className="grid grid-cols-2 gap-10 mb-8">
                   <div>
-                    <p className="stat-number text-brand-300">100%</p>
-                    <p className="stat-label">On-chain verifiable</p>
+                    <p className="stat-number text-brand-400">100%</p>
+                    <p className="stat-label text-surface-200 font-medium">On-chain verifiable</p>
                   </div>
                   <div>
-                    <p className="stat-number text-brand-300">&lt;30s</p>
-                    <p className="stat-label">Verification time</p>
+                    <p className="stat-number text-brand-400">&lt;30s</p>
+                    <p className="stat-label text-surface-200 font-medium">Verification time</p>
                   </div>
                   <div>
-                    <p className="stat-number text-brand-300">NFT</p>
-                    <p className="stat-label">Certificate format</p>
+                    <p className="stat-number text-brand-400">NFT</p>
+                    <p className="stat-label text-surface-200 font-medium">Certificate format</p>
                   </div>
                   <div>
-                    <p className="stat-number text-brand-300">4-Dim</p>
-                    <p className="stat-label">Code analysis</p>
+                    <p className="stat-number text-brand-400">4-Dim</p>
+                    <p className="stat-label text-surface-200 font-medium">Code analysis</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 pt-6 border-t border-white/10">
+                <div className="flex items-center gap-3 pt-6 border-t border-surface-700/60">
                   <span className="relative flex h-3 w-3">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
                   </span>
-                  <span className="text-sm text-surface-300 font-medium">Live on Algorand TestNet</span>
+                  <span className="text-sm text-surface-200 font-medium">Live on Algorand TestNet</span>
                 </div>
               </div>
             </div>
@@ -229,15 +270,19 @@ const Home: React.FC = () => {
         </div>
       </section>
 
+
+
       {/* ── Divider ── */}
       <div className="border-t border-surface-800/60" />
 
       {/* ── How It Works ── */}
       <section className="max-w-7xl mx-auto px-6 py-24">
-        <div className="text-center mb-16">
-          <p className="section-heading">How It Works</p>
-          <h2 className="section-title">Three steps to a verified credential</h2>
-        </div>
+        <FadeInSection>
+          <div className="text-center mb-16">
+            <p className="section-heading">How It Works</p>
+            <h2 className="section-title">Three steps to a verified credential</h2>
+          </div>
+        </FadeInSection>
 
         <div className="grid md:grid-cols-3 gap-8">
           {[
@@ -259,17 +304,19 @@ const Home: React.FC = () => {
               title: 'Blockchain Certificate',
               desc: 'If verified, an unforgeable NFT certificate is minted on Algorand. Share it with employers who can verify instantly.',
             },
-          ].map((item) => (
-            <div key={item.step} className="card-workspace group">
-              <div className="flex items-start gap-4 mb-5">
-                <span className="text-xs font-mono font-bold text-brand-500/40 mt-1">{item.step}</span>
-                <div className="w-10 h-10 rounded-lg bg-surface-800 border border-surface-700/60 flex items-center justify-center text-brand-400 group-hover:bg-brand-500/10 group-hover:border-brand-500/30 transition-colors duration-300">
-                  {item.icon}
+          ].map((item, index) => (
+            <FadeInSection key={item.step} delay={`${index * 200}ms`}>
+              <div className="card-workspace group h-full">
+                <div className="flex items-start gap-4 mb-5">
+                  <span className="text-xs font-mono font-bold text-brand-400 mt-1 opacity-100">{item.step}</span>
+                  <div className="w-10 h-10 rounded-lg bg-surface-800 border border-surface-600 flex items-center justify-center text-brand-300 group-hover:bg-brand-500/20 group-hover:border-brand-500/50 group-hover:text-brand-200 transition-all duration-300 shadow-sm">
+                    {item.icon}
+                  </div>
                 </div>
+                <h3 className="text-lg font-semibold text-surface-50 mb-2">{item.title}</h3>
+                <p className="text-sm text-surface-300 leading-relaxed font-medium">{item.desc}</p>
               </div>
-              <h3 className="text-lg font-semibold text-surface-100 mb-2">{item.title}</h3>
-              <p className="text-sm text-surface-400 leading-relaxed">{item.desc}</p>
-            </div>
+            </FadeInSection>
           ))}
         </div>
       </section>
@@ -279,10 +326,12 @@ const Home: React.FC = () => {
 
       {/* ── Why CertifyMe ── */}
       <section className="max-w-7xl mx-auto px-6 py-24">
-        <div className="text-center mb-16">
-          <p className="section-heading">Platform Advantages</p>
-          <h2 className="section-title">Built for professionals</h2>
-        </div>
+        <FadeInSection>
+          <div className="text-center mb-16">
+            <p className="section-heading">Platform Advantages</p>
+            <h2 className="section-title">Built for professionals</h2>
+          </div>
+        </FadeInSection>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[
@@ -306,14 +355,16 @@ const Home: React.FC = () => {
               title: 'Universally Portable',
               desc: 'Works across borders, institutions, and hiring platforms.',
             },
-          ].map((item) => (
-            <div key={item.title} className="card-workspace group text-center">
-              <div className="w-12 h-12 rounded-xl bg-surface-800 border border-surface-700/60 flex items-center justify-center text-surface-300 mx-auto mb-4 group-hover:text-brand-400 group-hover:bg-brand-500/10 group-hover:border-brand-500/30 transition-colors duration-300">
-                {item.icon}
+          ].map((item, index) => (
+            <FadeInSection key={item.title} delay={`${index * 100}ms`}>
+              <div className="card-workspace group text-center h-full hover:-translate-y-1 transition-transform duration-300">
+                <div className="w-12 h-12 rounded-xl bg-surface-800 border border-surface-600 flex items-center justify-center text-surface-200 mx-auto mb-4 group-hover:text-brand-300 group-hover:bg-brand-500/20 group-hover:border-brand-400/40 transition-colors duration-300 shadow-md">
+                  {item.icon}
+                </div>
+                <h3 className="text-base font-semibold text-surface-50 mb-2">{item.title}</h3>
+                <p className="text-sm text-surface-300 leading-relaxed">{item.desc}</p>
               </div>
-              <h3 className="text-base font-semibold text-surface-100 mb-2">{item.title}</h3>
-              <p className="text-sm text-surface-400 leading-relaxed">{item.desc}</p>
-            </div>
+            </FadeInSection>
           ))}
         </div>
       </section>
@@ -323,10 +374,12 @@ const Home: React.FC = () => {
 
       {/* ── New Features Showcase ── */}
       <section className="max-w-7xl mx-auto px-6 py-24">
-        <div className="text-center mb-16">
-          <p className="section-heading">What's New</p>
-          <h2 className="section-title">Enterprise-grade features</h2>
-        </div>
+        <FadeInSection>
+          <div className="text-center mb-16">
+            <p className="section-heading">What's New</p>
+            <h2 className="section-title">Enterprise-grade features</h2>
+          </div>
+        </FadeInSection>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[
@@ -366,46 +419,50 @@ const Home: React.FC = () => {
               desc: 'Full ARC-19 NFT minting on Algorand TestNet. Immutable, verifiable proof of your skills.',
               badge: 'CORE',
             },
-          ].map((item) => (
-            <div key={item.title} className="card-workspace group">
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-3xl">{item.icon}</span>
-                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${item.badge === 'NEW'
-                  ? 'bg-brand-500/20 text-brand-400'
-                  : 'bg-surface-700 text-surface-400'
-                  }`}>
-                  {item.badge}
-                </span>
+          ].map((item, index) => (
+            <FadeInSection key={item.title} delay={`${index * 100}ms`}>
+              <div className="card-workspace group h-full hover:shadow-lg transition-all duration-300">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-3xl filter drop-shadow-sm">{item.icon}</span>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${item.badge === 'NEW'
+                    ? 'bg-brand-500/20 text-brand-300 border border-brand-500/30'
+                    : 'bg-surface-700 text-surface-300 border border-surface-600'
+                    }`}>
+                    {item.badge}
+                  </span>
+                </div>
+                <h3 className="text-base font-semibold text-surface-50 mb-2">{item.title}</h3>
+                <p className="text-sm text-surface-300 leading-relaxed font-medium">{item.desc}</p>
               </div>
-              <h3 className="text-base font-semibold text-surface-100 mb-2">{item.title}</h3>
-              <p className="text-sm text-surface-400 leading-relaxed">{item.desc}</p>
-            </div>
+            </FadeInSection>
           ))}
         </div>
       </section>
 
       {/* ── Employer CTA ── */}
       <section className="max-w-7xl mx-auto px-6 py-24">
-        <div className="card-workspace p-10 md:p-14 flex flex-col md:flex-row items-center justify-between gap-8 border-brand-500/20 bg-brand-500/[0.03]">
-          <div className="flex items-start gap-5">
-            <div className="w-12 h-12 rounded-xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center text-brand-400 flex-shrink-0">
-              <IconBriefcase />
+        <FadeInSection>
+          <div className="card-workspace p-10 md:p-14 flex flex-col md:flex-row items-center justify-between gap-8 border-brand-500/30 bg-brand-500/[0.05] shadow-neon">
+            <div className="flex items-start gap-5">
+              <div className="w-12 h-12 rounded-xl bg-brand-500/20 border border-brand-500/40 flex items-center justify-center text-brand-300 flex-shrink-0 shadow-sm">
+                <IconBriefcase />
+              </div>
+              <div>
+                <h2 className="text-xl md:text-2xl font-bold text-surface-50 mb-2">Hiring? Verify candidates instantly.</h2>
+                <p className="text-surface-300 text-sm md:text-base max-w-lg leading-relaxed font-medium">
+                  No phone calls to universities, no trust issues. Enter a certificate asset ID and see
+                  the full, blockchain-verified proof of skill.
+                </p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-xl md:text-2xl font-bold text-surface-50 mb-2">Hiring? Verify candidates instantly.</h2>
-              <p className="text-surface-400 text-sm md:text-base max-w-lg leading-relaxed">
-                No phone calls to universities, no trust issues. Enter a certificate asset ID and see
-                the full, blockchain-verified proof of skill.
-              </p>
-            </div>
+            <button
+              className="btn-primary-workspace whitespace-nowrap flex items-center gap-2 hover:scale-105 transition-transform"
+              onClick={() => setEmployerModal(true)}
+            >
+              <IconSearch /> Verify a Candidate
+            </button>
           </div>
-          <button
-            className="btn-primary-workspace whitespace-nowrap flex items-center gap-2"
-            onClick={() => setEmployerModal(true)}
-          >
-            <IconSearch /> Verify a Candidate
-          </button>
-        </div>
+        </FadeInSection>
       </section>
 
       {/* ── Footer ── */}
