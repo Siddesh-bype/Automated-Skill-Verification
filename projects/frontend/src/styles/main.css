@@ -290,7 +290,7 @@ html {
     /* Keep white text inside primary buttons and badges */
     [data-theme="certifyme-light"] .btn-primary-workspace,
     [data-theme="certifyme-light"] .btn-primary-workspace *,
-    [data-theme="certifyme-light"] [class*="bg-brand-5"] *,
+    [data-theme="certifyme-light"] .bg-brand-500 *,
     [data-theme="certifyme-light"] [class*="bg-gradient-to-r"][class*="from-brand-"] * {
         color: #ffffff !important;
         -webkit-text-fill-color: #ffffff !important;

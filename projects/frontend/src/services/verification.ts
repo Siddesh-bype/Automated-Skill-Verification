@@ -82,6 +82,15 @@ export async function recordMint(certId: string, assetId: number, txId: string):
 }
 
 /**
+ * Fetch certificates for a specific user (wallet address)
+ */
+export async function fetchUserCertificates(walletAddress: string): Promise<VerificationResult[]> {
+    const res = await fetch(`${BACKEND_URL}/api/certificates?student_wallet=${walletAddress}`)
+    if (!res.ok) return []
+    return res.json()
+}
+
+/**
  * Fetch all certificates from backend
  */
 export async function fetchCertificates(status?: string): Promise<VerificationResult[]> {
